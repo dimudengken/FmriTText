@@ -24,8 +24,10 @@ class BrainLLM(nn.Module):
     def __init__(self, llm_path, n_subjects=8, encoder_kwargs=None,
                  hidden_dim=3072, n_heads=32, adapter_layers=(3, 7, 11, 15),
                  gate_init=0.08, temperature=1.3, torch_dtype=torch.bfloat16,
-                 proj_mode="rmsnorm", o_proj_init=0.0, gate_mode="scalar"):
+                 proj_mode="rmsnorm", o_proj_init=0.0, gate_mode="scalar",
+                 sem_kv=False):
         super().__init__()
+        self.sem_kv = sem_kv
         self.encoder = KeyValueEncoder(**(encoder_kwargs or {}))
         self.ridge = SubjectRidge(n_subjects=n_subjects, dim=1024)
         self.projector = Projector(in_dim=1024, out_dim=hidden_dim, mode=proj_mode)
@@ -73,6 +75,8 @@ class BrainLLM(nn.Module):
             x = self.ridge(x, subj)
         self._enc_sem = x.mean(dim=1)    # post-ridge pooled (B, 1024)，stage1 head 的输入（#4 辅助对齐用）
         x = self.projector(x)            # (B, 128, hidden_dim)
+        if self.sem_kv:                  # 方案 A：追加语义摘要 token（128 的 mean，mean 不变）
+            x = torch.cat([x, x.mean(dim=1, keepdim=True)], dim=1)   # (B, 129, hidden_dim)
         return x.to(self._dtype)         # 用存的 dtype；LLM 包了 peft 后未必有 .dtype
 
     def forward(self, voxels, subj, input_ids, attention_mask=None, labels=None,

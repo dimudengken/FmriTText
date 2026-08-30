@@ -91,6 +91,9 @@ def main():
     ap.add_argument("--log_steps", type=int, default=20)
     ap.add_argument("--ckpt_freq", type=int, default=1000, help="每 N 步滚动保存 last.pt（断点续训）")
     ap.add_argument("--resume", default=None, help="从 {out_dir}/last.pt 续训")
+    ap.add_argument("--exclude_shared1000", action="store_true",
+                    help="S1-7 训练只用 unique 图（split=train），剔除 shared1000——"
+                         "BIT-LLM 协议：S8 shared1000 成为干净 held-out")
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
 
@@ -111,9 +114,10 @@ def main():
     n_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"trainable: {n_trainable / 1e6:.1f}M (encoder+ridge+head)")
 
+    tr_splits = ("train",) if args.exclude_shared1000 else ("train", "new_test")
     loader = build_train_loader(args.data_path, list(range(1, 8)), captions_by_nsd_idx,
-                                args.batch_size, return_image=True)
-    print(f"train loader: {len(loader)} single-subject batches")
+                                args.batch_size, return_image=True, splits=tr_splits)
+    print(f"train loader: {len(loader)} single-subject batches (splits={tr_splits})")
 
     opt = AdamW(model.parameters(), lr=args.lr)
     loss_fn = BrainContrastiveLoss()

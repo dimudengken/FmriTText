@@ -174,6 +174,9 @@ def main():
     ap.add_argument("--gate_mode", default="scalar", choices=["scalar", "per_token"],
                     help="必须与 stage2 训练同传：per_token=逐脑 token gate 的 ckpt，"
                          "否则 scalar 架构加载失败白测")
+    ap.add_argument("--sem_kv", action="store_true",
+                    help="必须与 stage2 训练同传：方案 A 的 ckpt 在 KV 里追加了第 129 个语义摘要"
+                         "token，漏传 = 129-token 模型用 128-token 前向白测")
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
 
@@ -188,7 +191,8 @@ def main():
     model = BrainLLM(llm_path=args.llm, n_subjects=8,
                      encoder_kwargs={"anatomy_dir": args.anatomy_dir},
                      torch_dtype=torch.bfloat16,
-                     proj_mode=args.proj_mode, gate_mode=args.gate_mode).to(device).eval()
+                     proj_mode=args.proj_mode, gate_mode=args.gate_mode,
+                     sem_kv=args.sem_kv).to(device).eval()
     if args.lora:
         from peft import LoraConfig, get_peft_model
         # 7 类超集：GRPO(stage3) 的 LoRA 训在 q/k/v/o/gate/up/down；stage2 只有 q/k/v/o，

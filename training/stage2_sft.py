@@ -156,6 +156,20 @@ def main():
     ap.add_argument("--sem_lambda", type=float, default=0.0,
                     help="语义继承 MSE 权重：projector pooled → stage1 ContrastiveHead 空间对齐"
                          "（0=关；建议 0.01~0.05；测此项时须 --aux_lambda 0 隔离旧 InfoNCE aux）")
+    # --- 方案 A：CLIP 语义摘要 token（2026-08-30，默认关；与 --sem_lambda 共用 sem_head，勿同开）---
+    ap.add_argument("--sem_kv", action="store_true",
+                    help="把 projector 输出的 mean 作为第 129 个 KV token 注入 cross-attn"
+                         "（语义摘要位置；softmax 可给 0 权重忽略噪声）。架构 flag，评估须同传 --sem_kv")
+    ap.add_argument("--semclip_lambda", type=float, default=0.0,
+                    help="sem_head 对真 CLIP 图像嵌入的 MSE 权重（0=关；建议 0.03；比 #4 的 "
+                         "stage1_head 目标更干净；与 --sem_lambda 互斥，此 flag 优先）")
+    ap.add_argument("--image_emb", default=None,
+                    help="预计算图像 CLIP 嵌入 .pt；缺省 {data_path}/image_emb_mean_clip.pt"
+                         "（(73000,768) fp32 L2 归一化，按 nsd_idx 索引）")
+    # --- 数据划分复刻 BIT-LLM（2026-08-30）：S1-7 训练剔除 shared1000 ---
+    ap.add_argument("--exclude_shared1000", action="store_true",
+                    help="S1-7 训练只用 unique 图（split=train），剔除 shared1000（new_test）——"
+                         "BIT-LLM 协议：S8 shared1000 成为干净 held-out，评估用 --split new_test")
     ap.add_argument("--max_steps", type=int, default=None, help="快速冒烟用：跑够步数就停")
     ap.add_argument("--log_steps", type=int, default=10)
     ap.add_argument("--diag_batches", type=int, default=8,
@@ -186,11 +200,13 @@ def main():
                      encoder_kwargs={"anatomy_dir": args.anatomy_dir},
                      gate_init=args.gate_init, torch_dtype=torch.bfloat16,
                      proj_mode=args.proj_mode, o_proj_init=args.o_proj_init,
-                     gate_mode=args.gate_mode).to(device)
-    if args.proj_mode != "rmsnorm" or args.o_proj_init or args.gate_mode != "scalar":
+                     gate_mode=args.gate_mode, sem_kv=args.sem_kv).to(device)
+    if args.proj_mode != "rmsnorm" or args.o_proj_init or args.gate_mode != "scalar" \
+            or args.sem_kv:
         print(f"[stage2] 改进 flag 生效：proj_mode={args.proj_mode} "
               f"o_proj_init={args.o_proj_init} gate_mode={args.gate_mode} "
-              f"gate_reg={args.gate_reg} sem_lambda={args.sem_lambda}", flush=True)
+              f"gate_reg={args.gate_reg} sem_lambda={args.sem_lambda} "
+              f"sem_kv={args.sem_kv} semclip_lambda={args.semclip_lambda}", flush=True)
 
     if args.resume_encoder:
         ckpt = torch.load(args.resume_encoder, map_location="cpu")
@@ -268,15 +284,34 @@ def main():
                     model.aux_head.bias.data.zero_()
                 print("aux_head 初始化为选择器（取 projector 前 768 维 = stage1 head 语义）")
 
-    # #4 语义继承 MSE（--sem_lambda 0 关闭）：projector pooled (3072) → stage1 CLIP 空间 (768)。
-    # 与 warmstart 区别：warmstart 只初始化，这里是训练全程持续约束语义空间继承（λ 取小，防压倒 CE）。
+    # 语义继承 MSE：sem_head(projector pooled 3072) → CLIP 空间 (768)。目标二选一：
+    #   #4   --sem_lambda>0      → stage1_head(enc_sem)（旧，目标本身带噪声）
+    #   方案A --semclip_lambda>0 → 真 CLIP 图像嵌入（更干净，优先；二者互斥共用 sem_head）
     model.sem_head = None
-    if args.sem_lambda > 0:
-        assert stage1_head is not None, "--sem_lambda 需要 --resume_encoder 提供 stage1 head"
-        model.sem_head = nn.Linear(model.projector.linear.out_features,
-                                   stage1_head.weight.size(0)).to(device).float()
-        print(f"sem_head: {model.sem_head.weight.shape} | λ_sem={args.sem_lambda} "
-              f"(MSE 对齐 stage1 head；测此项须 --aux_lambda 0 隔离旧 InfoNCE)", flush=True)
+    if args.sem_lambda > 0 or args.semclip_lambda > 0:
+        if args.semclip_lambda > 0:
+            model.sem_head = nn.Linear(model.projector.linear.out_features, 768).to(device).float()
+            print(f"sem_head: {model.sem_head.weight.shape} | λ_semclip={args.semclip_lambda} "
+                  f"(MSE 对齐真 CLIP 图像嵌入；建议 --aux_lambda 0 隔离旧 InfoNCE)", flush=True)
+        else:
+            assert stage1_head is not None, "--sem_lambda 需要 --resume_encoder 提供 stage1 head"
+            model.sem_head = nn.Linear(model.projector.linear.out_features,
+                                       stage1_head.weight.size(0)).to(device).float()
+            print(f"sem_head: {model.sem_head.weight.shape} | λ_sem={args.sem_lambda} "
+                  f"(MSE 对齐 stage1 head；测此项须 --aux_lambda 0 隔离旧 InfoNCE)", flush=True)
+
+    # 方案 A 的真 CLIP 图像嵌入缓存（--semclip_lambda 0 关闭）：(73000,768) fp32 L2 归一化，
+    # 按 nsd_idx 索引，由 training/precompute_image_emb.py 预计算。
+    img_emb = None
+    if args.semclip_lambda > 0:
+        img_path = args.image_emb or os.path.join(args.data_path, "image_emb_mean_clip.pt")
+        if not os.path.exists(img_path):
+            raise FileNotFoundError(
+                f"--semclip_lambda 需要图像 CLIP 嵌入缓存 {img_path}。"
+                f"先用 python training/precompute_image_emb.py 生成（~10 min）。")
+        img_emb = torch.load(img_path, map_location="cpu", weights_only=True).float()
+        assert img_emb.dim() == 2 and img_emb.size(1) == 768, f"image_emb 形状应 (73000,768)，实际 {img_emb.shape}"
+        print(f"image embeddings: {img_emb.shape} (L2 归一化, 按 nsd_idx)", flush=True)
 
     def aux_embed(sem):
         x = sem.float()
@@ -296,12 +331,14 @@ def main():
 
     captions_by_nsd_idx = build_caption_map(args.data_path)
     collate = partial(sft_collate, tokenizer=tokenizer, max_len=args.max_len)
+    tr_splits = ("train",) if args.exclude_shared1000 else ("train", "new_test")
     loader, val_loader = build_train_val_loaders(
         args.data_path, list(range(1, 8)), captions_by_nsd_idx,
         args.batch_size, val_holdout=args.val_holdout,
-        return_image=False, collate_fn=collate, seed=args.seed)
+        return_image=False, collate_fn=collate, seed=args.seed, splits=tr_splits)
     print(f"train loader: {len(loader)} | val loader: {len(val_loader)} "
-          f"(holdout {args.val_holdout:.0%}/被试, 每 {args.val_freq} 步验证)")
+          f"(holdout {args.val_holdout:.0%}/被试, 每 {args.val_freq} 步验证, "
+          f"splits={tr_splits})")
 
     opt = AdamW(model.parameters(), lr=args.lr)
 
@@ -396,10 +433,15 @@ def main():
                 loss = ce + args.aux_lambda * aux
             else:
                 loss = ce
-            # #4 语义继承 MSE：projector pooled → stage1 head 空间（target 冻结，λ 取小）
+            # 语义继承 MSE：目标二选一（semclip 优先，二者互斥共用 sem_head）
             if model.sem_head is not None:
-                sem_target = stage1_head(enc_sem.float()).detach()   # (B, 768)
-                loss = loss + args.sem_lambda * F.mse_loss(model.sem_head(sem.float()), sem_target) / args.grad_accum
+                if args.semclip_lambda > 0:      # 方案 A：对真 CLIP 图像嵌入（pred 先归一化 ≈ 余弦距离）
+                    sem_target = img_emb[batch["nsd_idx"]].to(device).float()            # (B,768) 已归一化
+                    sem_pred = F.normalize(model.sem_head(sem.float()), dim=-1)
+                    loss = loss + args.semclip_lambda * F.mse_loss(sem_pred, sem_target) / args.grad_accum
+                elif args.sem_lambda > 0:        # #4：对 stage1 head 空间（target 冻结）
+                    sem_target = stage1_head(enc_sem.float()).detach()                   # (B, 768)
+                    loss = loss + args.sem_lambda * F.mse_loss(model.sem_head(sem.float()), sem_target) / args.grad_accum
             # #3 per-token gate 防坍缩正则：(g-0.5)² 推离 0/1（仅 gate_mode=per_token 生效）
             if args.gate_reg > 0:
                 gregs = [(model.cross_attn[i].last_gate - 0.5).pow(2).mean()

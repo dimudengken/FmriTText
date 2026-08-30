@@ -67,14 +67,17 @@ class SubjectBatchSampler(Sampler):
 
 
 def build_train_loader(data_path, subj_list, captions_by_nsd_idx, batch_size,
-                       return_image=True, num_workers=0, seed=42, collate_fn=None):
+                       return_image=True, num_workers=0, seed=42, collate_fn=None,
+                       splits=("train", "new_test")):
     """S1-7 训练 DataLoader（单被试 batch）。
 
     collate_fn 可替换默认的 collate_batch（如 SFT 需把 caption 分词并 padding）。
+    splits 默认 train∪new_test（含 shared1000）；BIT-LLM 协议用 ("train",) 剔除 shared1000，
+    S8 shared1000 才成为干净 held-out。
     """
     images = preprocessing.load_images_handle(data_path)
     datasets = [
-        build_subject_dataset(data_path, s, ["train", "new_test"], captions_by_nsd_idx,
+        build_subject_dataset(data_path, s, list(splits), captions_by_nsd_idx,
                               return_image=return_image, images=images)
         for s in subj_list
     ]
@@ -87,17 +90,18 @@ def build_train_loader(data_path, subj_list, captions_by_nsd_idx, batch_size,
 
 def build_train_val_loaders(data_path, subj_list, captions_by_nsd_idx, batch_size,
                             val_holdout=0.05, return_image=True, num_workers=0,
-                            seed=42, collate_fn=None):
+                            seed=42, collate_fn=None, splits=("train", "new_test")):
     """S1-7 训练 + 每被试随机划 val_holdout 的验证 DataLoader（均单被试 batch）。
 
-    与 build_train_loader 同构，但每被试从全量 trial（train ∪ new_test）随机划出
-    val_holdout 比例做独立验证集（Subset，每被试独立种子，可复现），S8 全程不参与。
+    与 build_train_loader 同构，但每被试从 splits 指定的 trial 池随机划出 val_holdout
+    比例做独立验证集（Subset，每被试独立种子，可复现），S8 全程不参与。
     验证不 shuffle、drop_last=False（不丢样本）。返回 (train_loader, val_loader)。
+    splits 默认 train∪new_test；BIT-LLM 协议用 ("train",) 剔除 shared1000。
     """
     images = preprocessing.load_images_handle(data_path)
     train_dss, val_dss = [], []
     for s in subj_list:
-        ds = build_subject_dataset(data_path, s, ["train", "new_test"],
+        ds = build_subject_dataset(data_path, s, list(splits),
                                    captions_by_nsd_idx, return_image=return_image,
                                    images=images)
         n = len(ds)
