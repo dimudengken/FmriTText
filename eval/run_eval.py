@@ -34,7 +34,7 @@ from functools import partial
 import torch
 import torch.nn.functional as F
 from transformers import AutoTokenizer, CLIPModel
-from data.dataloader import build_test_loader
+from data.dataloader import build_test_loader, build_holdout_loader
 from data.preprocessing import build_caption_map
 from models.brain_llm import BrainLLM
 from training.stage2_sft import MESSAGES
@@ -161,6 +161,12 @@ def main():
     ap.add_argument("--split", default="new_test",
                     help="评估数据 split：new_test=shared1000（默认，S8 微调同源）；"
                          "train=S8 unique 图（从未进 S8 微调 → held-out 泛化检查）")
+    ap.add_argument("--eval_holdout", type=float, default=0.0,
+                    help=">0 时用该被试的 val-holdout 留出子集评估（被试内 held-out，仅训练过的被试 1/2/5/7）。"
+                         "划分与 build_train_val_loaders 完全同构（同 seed+s randperm、同 val_holdout），"
+                         "必须与 stage2 训练同传 val_holdout 值、--splits 与 --seed，否则留出子集与训练重叠泄漏")
+    ap.add_argument("--splits", default="train,new_test",
+                    help="holdout 划分的 splits 池（逗号分隔），须与 stage2 训练同传（默认 train∪new_test）")
     ap.add_argument("--diag_batches", type=int, default=None, help="冒烟：限制诊断 batch 数")
     ap.add_argument("--no_spice", action="store_true", help="跳过 SPICE（需 Java，慢）")
     ap.add_argument("--lora", action="store_true",
@@ -212,12 +218,22 @@ def main():
         p.requires_grad = False
 
     captions_by_nsd_idx = build_caption_map(args.data_path)
-    loader = build_test_loader(args.data_path, args.test_subj, captions_by_nsd_idx,
-                               args.batch_size, return_image=True, split=args.split)
+    if args.eval_holdout > 0:
+        splits_pool = tuple(s.strip() for s in args.splits.split(","))
+        loader = build_holdout_loader(args.data_path, args.test_subj, captions_by_nsd_idx,
+                                      args.batch_size, val_holdout=args.eval_holdout,
+                                      return_image=True, seed=args.seed, splits=splits_pool)
+        split_label = f"holdout({args.eval_holdout:.0%} of {splits_pool})"
+        if args.test_subj == 8:
+            print(f"[eval] WARNING: --eval_holdout 仅对训练过的被试（S1-7）有意义，S8 无同构留出划分")
+    else:
+        loader = build_test_loader(args.data_path, args.test_subj, captions_by_nsd_idx,
+                                   args.batch_size, return_image=True, split=args.split)
+        split_label = args.split
     total = len(loader.dataset)
     if args.max_trials:
         total = min(total, args.max_trials)
-    print(f"S{args.test_subj:02d} {args.split} loader: {len(loader)} batches ({total} trials)")
+    print(f"S{args.test_subj:02d} {split_label} loader: {len(loader)} batches ({total} trials)")
 
     gallery, col_of = build_gallery(loader, clip, device)
     os.makedirs(args.out_dir, exist_ok=True)

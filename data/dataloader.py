@@ -153,3 +153,23 @@ def build_test_loader(data_path, subj, captions_by_nsd_idx, batch_size,
                                return_image=return_image, images=images)
     return DataLoader(ds, batch_size=batch_size, shuffle=False,
                       collate_fn=collate_batch, num_workers=num_workers, drop_last=False)
+
+
+def build_holdout_loader(data_path, subj, captions_by_nsd_idx, batch_size,
+                         val_holdout=0.05, return_image=True, num_workers=0,
+                         seed=42, collate_fn=None, splits=("train", "new_test")):
+    """训练过被试（S1-7）的 val-holdout 留出子集 DataLoader（被试内 held-out 评估用）。
+
+    与 build_train_val_loaders 的 val 划分【完全同构】：同 seed+s 的 randperm、同
+    n_val=int(n*val_holdout)、同 splits 池 → 保证评估用到的 trial 从未进过 stage2 训练
+    （否则泄漏，数虚高）。不 shuffle、drop_last=False。仅对训练过的被试有意义。
+    """
+    images = preprocessing.load_images_handle(data_path)
+    ds = build_subject_dataset(data_path, subj, list(splits), captions_by_nsd_idx,
+                               return_image=return_image, images=images)
+    n = len(ds)
+    n_val = int(n * val_holdout)
+    perm = torch.randperm(n, generator=torch.Generator().manual_seed(seed + subj))
+    val_ds = Subset(ds, perm[:n_val].tolist())
+    return DataLoader(val_ds, batch_size=batch_size, shuffle=False,
+                      collate_fn=collate_fn or collate_batch, num_workers=num_workers)
