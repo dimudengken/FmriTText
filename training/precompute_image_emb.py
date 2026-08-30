@@ -37,7 +37,7 @@ def main():
     args = ap.parse_args()
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    images = load_images_handle(args.data_path)["images"]
+    images = load_images_handle(args.data_path)
     n = images.shape[0]
     print(f"images: {n} x {images.shape[1:]} (float16 [0,1]，勿再 /255)")
 
