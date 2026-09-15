@@ -4,7 +4,12 @@
 Bleu/Rouge/Cider）；pycoco 缺失的项用纯 python 补齐（BLEU=nltk、ROUGE-L=LCS、CIDEr=标准
 TF-IDF）；METEOR 需 Java(pycoco) 或 wordnet(nltk)，都没有则剔除。
 
-尺度警告（CLAUDE.md）：CIDEr 有 0~1 归一与 ×10 原始两套尺度，跨表对比前先统一。
+尺度约定（2026-09-05）：compute_text_metrics 输出即论文表尺度 —— 对全部 captioning 指标
+（BLEU-1/2/3/4、ROUGE-L、METEOR、CIDEr、SPICE）统一点乘 ×100，与 MindLLM/BIT-LLM 论文表
+（CIDEr 26.64 / BLEU-4 9.57，两论文明注 "×100"）同尺度、可直接入表，无需再手动乘。内部纯
+python 数学（_cider_score 等）仍按 0~1 native 算，只在公共入口统一点乘。旧记录里标注 native
+的数（如 0.2109）须自行 ×100 才与本次输出同尺度；训练奖励（training/rewards.py CiderGlobal）
+不走本函数，保持 native。
 """
 import re
 import shutil
@@ -14,6 +19,8 @@ from math import log
 
 _CIDER_NGRAM = 4
 _HAS_JAVA = shutil.which("java") is not None  # Meteor/SPICE 依赖 Java
+# 输出尺度（论文表）：这些 captioning 指标统一点乘 ×100（MindLLM/BIT-LLM "metrics ×100"）
+_PAPER_SCALE_METRICS = {"BLEU-1", "BLEU-2", "BLEU-3", "BLEU-4", "ROUGE-L", "METEOR", "CIDEr", "SPICE"}
 
 
 def _tok(text):
@@ -180,4 +187,7 @@ def compute_text_metrics(hypotheses, references, use_spice=True):
         except Exception as e:
             print(f"[metrics] METEOR 不可用（需 wordnet/Java）: {e}", flush=True)
 
+    # 2026-09-05：统一点乘 ×100 → 论文表尺度。全部 captioning 指标同乘 → 结果 dict 内部
+    # 无 native/×100 混排；训练奖励侧 CiderGlobal 独立、不受影响。
+    scores = {k: (v * 100 if k in _PAPER_SCALE_METRICS else v) for k, v in scores.items()}
     return {k: v for k, v in scores.items() if not (isinstance(v, float) and v != v)}

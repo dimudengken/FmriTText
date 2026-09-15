@@ -1,0 +1,494 @@
+{
+  "stage1": "checkpoints/stage1/stage1_e84_noridge.pt",
+  "split": "new_test",
+  "subjects": [
+    1,
+    2,
+    8
+  ],
+  "bypass_mlp": true,
+  "head_diag": {
+    "1": {
+      "cos_post_mlp": null
+    },
+    "2": {
+      "cos_post_mlp": null
+    },
+    "8": {
+      "cos_post_mlp": null
+    }
+  },
+  "within_same": {
+    "1": {
+      "readout": 0.06342233215109445,
+      "mlp_out": 0.3580847665797919,
+      "enc": 0.41220683807786557,
+      "head": 0.4258956514298916
+    },
+    "2": {
+      "readout": 0.10367137274867855,
+      "mlp_out": 0.36743546968232843,
+      "enc": 0.41876124355196953,
+      "head": 0.4321863432468381
+    },
+    "8": {
+      "readout": 0.10853494597187353,
+      "mlp_out": 0.21107023771835234,
+      "enc": 0.2347697838010174,
+      "head": 0.25597998465644806
+    }
+  },
+  "within_diff": {
+    "1": {
+      "n_images": 1000,
+      "readout": {
+        "within_diff": -0.018411042168736458
+      },
+      "mlp_out": {
+        "within_diff": 0.03709132969379425
+      },
+      "enc": {
+        "within_diff": 0.0297438595443964
+      },
+      "head": {
+        "within_diff": 0.04706357792019844
+      }
+    },
+    "2": {
+      "n_images": 1000,
+      "readout": {
+        "within_diff": -0.011636482551693916
+      },
+      "mlp_out": {
+        "within_diff": 0.03280893340706825
+      },
+      "enc": {
+        "within_diff": 0.05000723525881767
+      },
+      "head": {
+        "within_diff": 0.052708446979522705
+      }
+    },
+    "8": {
+      "n_images": 907,
+      "readout": {
+        "within_diff": -0.001960805617272854
+      },
+      "mlp_out": {
+        "within_diff": 0.06514876335859299
+      },
+      "enc": {
+        "within_diff": 0.049313317984342575
+      },
+      "head": {
+        "within_diff": 0.10336675494909286
+      }
+    }
+  },
+  "pairs": {
+    "1-8": {
+      "n_common_images": 907,
+      "readout": {
+        "cross_same": 0.08714120835065842,
+        "cross_diff": 0.006403764709830284,
+        "gap_vs_within": 1.3739830339738563,
+        "noise_ceiling": 0.0829670982584618,
+        "align_eff": 1.0503104264197995,
+        "MedR": 405.0,
+        "R@1": 0.005512678995728493,
+        "R@10": 0.03197354078292847
+      },
+      "mlp_out": {
+        "cross_same": 0.09853498637676239,
+        "cross_diff": 0.02937108650803566,
+        "gap_vs_within": 0.27517223733896506,
+        "noise_ceiling": 0.2749200552984765,
+        "align_eff": 0.3584132349667414,
+        "MedR": 271.0,
+        "R@1": 0.004410143475979567,
+        "R@10": 0.034178610891103745
+      },
+      "enc": {
+        "cross_same": 0.1569821685552597,
+        "cross_diff": 0.02723538875579834,
+        "gap_vs_within": 0.3808334895347027,
+        "noise_ceiling": 0.3110847316356775,
+        "align_eff": 0.5046283298117863,
+        "MedR": 255.0,
+        "R@1": 0.004410143475979567,
+        "R@10": 0.034178610891103745
+      },
+      "head": {
+        "cross_same": 0.18329566717147827,
+        "cross_diff": 0.06076216697692871,
+        "gap_vs_within": 0.4303769398820718,
+        "noise_ceiling": 0.3301829225115551,
+        "align_eff": 0.555133699154485,
+        "MedR": 272.0,
+        "R@1": 0.003307607490569353,
+        "R@10": 0.03638368099927902
+      },
+      "token": {
+        "n_token_images": 200,
+        "n_pos": 128,
+        "token_mean_cos": 0.1689003079032409,
+        "global_same_enc": 0.1569821685552597
+      },
+      "clip_cos_a": 0.14963097610000559,
+      "clip_cos_b": 0.11770983708790342
+    },
+    "1-2": {
+      "n_common_images": 1000,
+      "readout": {
+        "cross_same": 0.18342319130897522,
+        "cross_diff": -0.030668681487441063,
+        "gap_vs_within": 2.8920915565198113,
+        "noise_ceiling": 0.08108686846232634,
+        "align_eff": 2.2620578989826847,
+        "MedR": 404.0,
+        "R@1": 0.00800000037997961,
+        "R@10": 0.04899999871850014
+      },
+      "mlp_out": {
+        "cross_same": 0.18738645315170288,
+        "cross_diff": 0.020016629248857498,
+        "gap_vs_within": 0.5233019403240871,
+        "noise_ceiling": 0.362729988275484,
+        "align_eff": 0.5166003892939443,
+        "MedR": 125.0,
+        "R@1": 0.010999999940395355,
+        "R@10": 0.08900000154972076
+      },
+      "enc": {
+        "cross_same": 0.3130279779434204,
+        "cross_diff": 0.031374648213386536,
+        "gap_vs_within": 0.7593954030531868,
+        "noise_ceiling": 0.4154711158601911,
+        "align_eff": 0.7534289773558085,
+        "MedR": 115.0,
+        "R@1": 0.010999999940395355,
+        "R@10": 0.10000000149011612
+      },
+      "head": {
+        "cross_same": 0.3439059555530548,
+        "cross_diff": 0.04378246143460274,
+        "gap_vs_within": 0.8074887696045578,
+        "noise_ceiling": 0.42902946774809636,
+        "align_eff": 0.8015905232760804,
+        "MedR": 126.0,
+        "R@1": 0.009999999776482582,
+        "R@10": 0.09300000220537186
+      },
+      "token": {
+        "n_token_images": 200,
+        "n_pos": 128,
+        "token_mean_cos": 0.2975308839342324,
+        "global_same_enc": 0.3130279779434204
+      },
+      "clip_cos_a": 0.1481397937866859,
+      "clip_cos_b": 0.1389002308906056
+    }
+  },
+  "subject_probe": {
+    "readout": {
+      "acc": 0.3498713708195516,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    },
+    "mlp_out": {
+      "acc": 0.7416391032708562,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    },
+    "enc": {
+      "acc": 0.5593531789783168,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    },
+    "head": {
+      "acc": 0.5130466740169055,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    }
+  },
+  "procrustes": {
+    "1-8": {
+      "readout": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 200.0,
+        "MedR_procrustes": 204.0,
+        "MedR_linear": 226.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.0044052861630916595,
+        "R@1_linear": 0.0044052861630916595,
+        "cross_same_unaligned": 0.09362779557704926,
+        "cross_same_procrustes": 0.08888088911771774,
+        "cross_same_linear": 0.041408736258745193,
+        "pos": "readout"
+      },
+      "mlp_out": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 136.0,
+        "MedR_procrustes": 43.0,
+        "MedR_linear": 125.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.06828194111585617,
+        "R@1_linear": 0.0044052861630916595,
+        "cross_same_unaligned": 0.09428701549768448,
+        "cross_same_procrustes": 0.23739080131053925,
+        "cross_same_linear": 0.15735876560211182,
+        "pos": "mlp_out"
+      },
+      "enc": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 142.0,
+        "MedR_procrustes": 56.0,
+        "MedR_linear": 164.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.035242289304733276,
+        "R@1_linear": 0.0022026430815458298,
+        "cross_same_unaligned": 0.15374307334423065,
+        "cross_same_procrustes": 0.2838298976421356,
+        "cross_same_linear": 0.10657486319541931,
+        "pos": "enc"
+      },
+      "head": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 148.0,
+        "MedR_procrustes": 63.0,
+        "MedR_linear": 190.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.039647575467824936,
+        "R@1_linear": 0.0022026430815458298,
+        "cross_same_unaligned": 0.17864291369915009,
+        "cross_same_procrustes": 0.3014783561229706,
+        "cross_same_linear": 0.10276241600513458,
+        "pos": "head"
+      }
+    }
+  },
+  "clip": {
+    "retrieval": {
+      "1": {
+        "R@1": 0.00800000037997961,
+        "R@10": 0.07000000029802322,
+        "MedR": 165.0,
+        "n_gallery": 1000
+      },
+      "2": {
+        "R@1": 0.008999999612569809,
+        "R@10": 0.04600000008940697,
+        "MedR": 210.0,
+        "n_gallery": 1000
+      },
+      "8": {
+        "R@1": 0.0022050717379897833,
+        "R@10": 0.025358324870467186,
+        "MedR": 283.0,
+        "n_gallery": 907
+      }
+    },
+    "per_image_cos": {
+      "1": {
+        "subj": 1,
+        "n_images": 1000,
+        "mean": 0.1481398046016693,
+        "median": 0.14849859476089478,
+        "p10": 0.04728805273771286,
+        "p90": 0.24871701002120972,
+        "top10_mean": 0.2839631736278534,
+        "frac_gt_0p10": 0.722000002861023,
+        "frac_gt_0p15": 0.4950000047683716,
+        "frac_gt_0p20": 0.25699999928474426
+      },
+      "2": {
+        "subj": 2,
+        "n_images": 1000,
+        "mean": 0.13890022039413452,
+        "median": 0.13944031298160553,
+        "p10": 0.03733979910612106,
+        "p90": 0.2389501929283142,
+        "top10_mean": 0.2681977450847626,
+        "frac_gt_0p10": 0.6930000185966492,
+        "frac_gt_0p15": 0.44999998807907104,
+        "frac_gt_0p20": 0.22699999809265137
+      },
+      "8": {
+        "subj": 8,
+        "n_images": 907,
+        "mean": 0.11770983785390854,
+        "median": 0.12061955779790878,
+        "p10": 0.01413580123335123,
+        "p90": 0.21995937824249268,
+        "top10_mean": 0.25790151953697205,
+        "frac_gt_0p10": 0.5821388959884644,
+        "frac_gt_0p15": 0.35942667722702026,
+        "frac_gt_0p20": 0.14994487166404724
+      }
+    },
+    "pair_corr": {
+      "1-8": {
+        "pearson": 0.1408044993877411,
+        "spearman": 0.13916391134262085,
+        "n_images": 907
+      },
+      "1-2": {
+        "pearson": 0.3444248139858246,
+        "spearman": 0.34268462657928467,
+        "n_images": 1000
+      }
+    },
+    "top_readable": {
+      "1": [
+        {
+          "nsd": 20650,
+          "clip_cos": 0.375,
+          "ref": "A person holding a tennis racket in their hand."
+        },
+        {
+          "nsd": 47200,
+          "clip_cos": 0.364,
+          "ref": "A man surfing waves on a surfboard in the ocean."
+        },
+        {
+          "nsd": 56751,
+          "clip_cos": 0.359,
+          "ref": "there is a large desk top computer on this desk"
+        },
+        {
+          "nsd": 27580,
+          "clip_cos": 0.356,
+          "ref": "A bathroom with a walk in shower next to a sink under a mirror."
+        },
+        {
+          "nsd": 24640,
+          "clip_cos": 0.343,
+          "ref": "The bathroom is all white and has no towels. "
+        },
+        {
+          "nsd": 9434,
+          "clip_cos": 0.34,
+          "ref": "A man holding a surfboard standing on a wave covered ocean."
+        },
+        {
+          "nsd": 34126,
+          "clip_cos": 0.334,
+          "ref": "Someone snow skiing rapidly down a steep hill"
+        },
+        {
+          "nsd": 64004,
+          "clip_cos": 0.333,
+          "ref": "a girl playing tennis hits the ball back to the opponet"
+        }
+      ],
+      "2": [
+        {
+          "nsd": 35790,
+          "clip_cos": 0.359,
+          "ref": "A man riding a surfboard along a wave."
+        },
+        {
+          "nsd": 8109,
+          "clip_cos": 0.349,
+          "ref": "A woman standing on a  tennis court holding a racquet."
+        },
+        {
+          "nsd": 49957,
+          "clip_cos": 0.349,
+          "ref": "A woman holding a tennis racket on a court. "
+        },
+        {
+          "nsd": 43164,
+          "clip_cos": 0.347,
+          "ref": "A man in cowboy boots is sitting on a horse. "
+        },
+        {
+          "nsd": 53511,
+          "clip_cos": 0.347,
+          "ref": "A woman is getting ready to hit a ball with a tennis racket."
+        },
+        {
+          "nsd": 33131,
+          "clip_cos": 0.318,
+          "ref": "A group of people that are sitting around a table."
+        },
+        {
+          "nsd": 64004,
+          "clip_cos": 0.317,
+          "ref": "a girl playing tennis hits the ball back to the opponet"
+        },
+        {
+          "nsd": 9147,
+          "clip_cos": 0.309,
+          "ref": "A large bird is flying slightly above the blue water. "
+        }
+      ],
+      "8": [
+        {
+          "nsd": 65769,
+          "clip_cos": 0.363,
+          "ref": "a person is surfing under a wave at the beach"
+        },
+        {
+          "nsd": 8109,
+          "clip_cos": 0.361,
+          "ref": "A woman standing on a  tennis court holding a racquet."
+        },
+        {
+          "nsd": 36258,
+          "clip_cos": 0.357,
+          "ref": "Elephant walking on dirt path near forested area."
+        },
+        {
+          "nsd": 34238,
+          "clip_cos": 0.328,
+          "ref": "A zebra is eating from the tall brown and green grass."
+        },
+        {
+          "nsd": 3809,
+          "clip_cos": 0.316,
+          "ref": "A herd of cattle grazing on a grassy hill."
+        },
+        {
+          "nsd": 7120,
+          "clip_cos": 0.313,
+          "ref": "This photograph of a surfer entering the ocean is breathtaking."
+        },
+        {
+          "nsd": 55680,
+          "clip_cos": 0.313,
+          "ref": "A yellow plastic bowl filled with fruit next to a smaller bowl of berries."
+        },
+        {
+          "nsd": 12937,
+          "clip_cos": 0.312,
+          "ref": "Desktop computer on a white tiled desk with a table lamp."
+        }
+      ]
+    }
+  }
+}

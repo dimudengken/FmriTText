@@ -53,6 +53,7 @@ class KeyValueEncoder(nn.Module):
         self.rank = rank
         self.n_pos = n_pos
         self.anatomy_dir = anatomy_dir
+        self.bypass_mlp = False  # 诊断开关（默认关，不影响训练）：跳过共享 4 层残差 MLP
         out_dim = n_fmri_tokens * token_dim
 
         norm_func = (partial(nn.BatchNorm1d, num_features=hidden_dim) if norm_type == "bn"
@@ -97,9 +98,12 @@ class KeyValueEncoder(nn.Module):
         # 持有 logits/权重/多份梯度会顶穿显存；重算而非保留，把峰值砍到 ~1/3。
         x = checkpoint(self.neuro_informed_attn, voxels, keys, use_reentrant=False)
         x = self.neuro_informed_attn_post(x)
-        residual = x
-        for block in self.mlp:
-            x = block(x) + residual
+        if not self.bypass_mlp:
+            # bypass_mlp（诊断，默认关）= 跳过共享 4 层残差 MLP，head 直接吃 post（LN+GELU）。
+            # 测：非线性共享变换是否把跨被试可用的 readout 变成训练 subject-specific 表示。
             residual = x
+            for block in self.mlp:
+                x = block(x) + residual
+                residual = x
         x = self.head(x)  # (B, 128 * token_dim)
         return x.reshape(B, self.n_fmri_tokens, self.token_dim)

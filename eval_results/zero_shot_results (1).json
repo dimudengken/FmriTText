@@ -1,0 +1,27 @@
+{
+  "arm": "zero_shot",
+  "n_trials": 1500,
+  "use_ridge": false,
+  "retrieval_head": "cross_subject(stage1):stage1_e84_noridge.pt",
+  "text_metrics": {
+    "BLEU-1": 0.509761671563793,
+    "BLEU-2": 0.295221573821962,
+    "BLEU-3": 0.17200070175715723,
+    "BLEU-4": 0.10684666606722353,
+    "ROUGE-L": 0.36203242940919667,
+    "CIDEr": 0.210888039889939
+  },
+  "retrieval": {
+    "R@1": 0.0006666666595265269,
+    "R@10": 0.003999999724328518,
+    "MedR": 747.0
+  },
+  "diagnostics": {
+    "zero_cos": 0.02607492148379485,
+    "shuffle_cos": 0.022959974721074104,
+    "gaussian_cos_std001": 0.9978394502003988,
+    "gaussian_cos_std005": 0.9919631012280782,
+    "gaussian_cos_std010": 0.9874105793635051,
+    "gaussian_cos_std050": 0.9253238202730815
+  }
+}

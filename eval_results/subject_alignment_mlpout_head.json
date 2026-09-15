@@ -1,0 +1,495 @@
+{
+  "stage1": "checkpoints/stage1/stage1_e84_noridge.pt",
+  "split": "new_test",
+  "subjects": [
+    1,
+    2,
+    8
+  ],
+  "head": "probe:head_mlpout.pt",
+  "bypass_mlp": false,
+  "head_diag": {
+    "1": {
+      "cos_post_mlp": 0.20092717663447063
+    },
+    "2": {
+      "cos_post_mlp": 0.19659016370773316
+    },
+    "8": {
+      "cos_post_mlp": 0.13840419631553524
+    }
+  },
+  "within_same": {
+    "1": {
+      "readout": 0.0634233452945482,
+      "mlp_out": 0.42965111434459685,
+      "enc": 0.29711132901301607,
+      "head": 0.2531232948682737
+    },
+    "2": {
+      "readout": 0.10367137274867855,
+      "mlp_out": 0.4331859197616577,
+      "enc": 0.3075794690533076,
+      "head": 0.2658463906731922
+    },
+    "8": {
+      "readout": 0.10853494597187353,
+      "mlp_out": 0.32545719273368934,
+      "enc": 0.1125872866366078,
+      "head": 0.081502655466627
+    }
+  },
+  "within_diff": {
+    "1": {
+      "n_images": 1000,
+      "readout": {
+        "within_diff": -0.01841110736131668
+      },
+      "mlp_out": {
+        "within_diff": 0.4113404452800751
+      },
+      "enc": {
+        "within_diff": 0.05226709693670273
+      },
+      "head": {
+        "within_diff": 0.00979540217667818
+      }
+    },
+    "2": {
+      "n_images": 1000,
+      "readout": {
+        "within_diff": -0.011636482551693916
+      },
+      "mlp_out": {
+        "within_diff": 0.4076409637928009
+      },
+      "enc": {
+        "within_diff": 0.05470845103263855
+      },
+      "head": {
+        "within_diff": 0.012790950946509838
+      }
+    },
+    "8": {
+      "n_images": 907,
+      "readout": {
+        "within_diff": -0.001960805617272854
+      },
+      "mlp_out": {
+        "within_diff": 0.37750673294067383
+      },
+      "enc": {
+        "within_diff": 0.0620894655585289
+      },
+      "head": {
+        "within_diff": 0.03482169657945633
+      }
+    }
+  },
+  "pairs": {
+    "1-8": {
+      "n_common_images": 907,
+      "readout": {
+        "cross_same": 0.08714146167039871,
+        "cross_diff": 0.0064039528369903564,
+        "gap_vs_within": 1.373965079667428,
+        "noise_ceiling": 0.08296776093700052,
+        "align_eff": 1.0503050906311355,
+        "MedR": 405.0,
+        "R@1": 0.005512678995728493,
+        "R@10": 0.03197354078292847
+      },
+      "mlp_out": {
+        "cross_same": 0.38820695877075195,
+        "cross_diff": 0.3686382472515106,
+        "gap_vs_within": 0.90353997885688,
+        "noise_ceiling": 0.3739425698279,
+        "align_eff": 1.0381459349477566,
+        "MedR": 327.0,
+        "R@1": 0.004410143475979567,
+        "R@10": 0.03528114780783653
+      },
+      "enc": {
+        "cross_same": 0.12343444675207138,
+        "cross_diff": 0.04127435013651848,
+        "gap_vs_within": 0.41544846896990545,
+        "noise_ceiling": 0.18289603156594714,
+        "align_eff": 0.6748886003443132,
+        "MedR": 247.0,
+        "R@1": 0.004410143475979567,
+        "R@10": 0.034178610891103745
+      },
+      "head": {
+        "cross_same": 0.08579903841018677,
+        "cross_diff": 0.011180232279002666,
+        "gap_vs_within": 0.33896144744337703,
+        "noise_ceiling": 0.1436322411306958,
+        "align_eff": 0.5973522221387282,
+        "MedR": 291.0,
+        "R@1": 0.004410143475979567,
+        "R@10": 0.026460859924554825
+      },
+      "token": {
+        "n_token_images": 200,
+        "n_pos": 128,
+        "token_mean_cos": 0.2869925744086504,
+        "global_same_enc": 0.12343444675207138
+      },
+      "clip_cos_a": 0.17537345317327915,
+      "clip_cos_b": 0.06949316994199795
+    },
+    "1-2": {
+      "n_common_images": 1000,
+      "readout": {
+        "cross_same": 0.1834230273962021,
+        "cross_diff": -0.030668720602989197,
+        "gap_vs_within": 2.892042772962481,
+        "noise_ceiling": 0.08108751612300906,
+        "align_eff": 2.262037810085969,
+        "MedR": 404.0,
+        "R@1": 0.00800000037997961,
+        "R@10": 0.04899999871850014
+      },
+      "mlp_out": {
+        "cross_same": 0.44531506299972534,
+        "cross_diff": 0.3802982568740845,
+        "gap_vs_within": 1.0364573676924422,
+        "noise_ceiling": 0.43141489675715344,
+        "align_eff": 1.0322199496286666,
+        "MedR": 113.0,
+        "R@1": 0.014999999664723873,
+        "R@10": 0.11900000274181366
+      },
+      "enc": {
+        "cross_same": 0.32379165291786194,
+        "cross_diff": 0.04557912424206734,
+        "gap_vs_within": 1.0897990796698198,
+        "noise_ceiling": 0.30230009068398583,
+        "align_eff": 1.0710934693577139,
+        "MedR": 80.0,
+        "R@1": 0.029999999329447746,
+        "R@10": 0.1459999978542328
+      },
+      "head": {
+        "cross_same": 0.2857905626296997,
+        "cross_diff": 0.004736735485494137,
+        "gap_vs_within": 1.129056742005615,
+        "noise_ceiling": 0.25940685098130445,
+        "align_eff": 1.1017078444481667,
+        "MedR": 97.0,
+        "R@1": 0.026000000536441803,
+        "R@10": 0.12700000405311584
+      },
+      "token": {
+        "n_token_images": 200,
+        "n_pos": 128,
+        "token_mean_cos": 0.40916210450232027,
+        "global_same_enc": 0.32379165291786194
+      },
+      "clip_cos_a": 0.1734141982921865,
+      "clip_cos_b": 0.16782938122516497
+    }
+  },
+  "subject_probe": {
+    "readout": {
+      "acc": 0.3498713708195516,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    },
+    "mlp_out": {
+      "acc": 0.9650863653068724,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    },
+    "enc": {
+      "acc": 0.673281881661154,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    },
+    "head": {
+      "acc": 0.5093715545755237,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    }
+  },
+  "procrustes": {
+    "1-8": {
+      "readout": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 200.0,
+        "MedR_procrustes": 204.0,
+        "MedR_linear": 222.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.0044052861630916595,
+        "R@1_linear": 0.0044052861630916595,
+        "cross_same_unaligned": 0.09362814575433731,
+        "cross_same_procrustes": 0.0888817310333252,
+        "cross_same_linear": 0.041783951222896576,
+        "pos": "readout"
+      },
+      "mlp_out": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 169.0,
+        "MedR_procrustes": 81.0,
+        "MedR_linear": 146.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.015418502502143383,
+        "R@1_linear": 0.019823787733912468,
+        "cross_same_unaligned": 0.3849163055419922,
+        "cross_same_procrustes": 0.43886008858680725,
+        "cross_same_linear": 0.3799305856227875,
+        "pos": "mlp_out"
+      },
+      "enc": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 126.0,
+        "MedR_procrustes": 101.0,
+        "MedR_linear": 194.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.015418502502143383,
+        "R@1_linear": 0.0,
+        "cross_same_unaligned": 0.12065603584051132,
+        "cross_same_procrustes": 0.15169201791286469,
+        "cross_same_linear": 0.05796786770224571,
+        "pos": "enc"
+      },
+      "head": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 146.0,
+        "MedR_procrustes": 128.0,
+        "MedR_linear": 219.0,
+        "R@1_unaligned": 0.006607929710298777,
+        "R@1_procrustes": 0.0044052861630916595,
+        "R@1_linear": 0.0044052861630916595,
+        "cross_same_unaligned": 0.08223851770162582,
+        "cross_same_procrustes": 0.09607953578233719,
+        "cross_same_linear": 0.022119903936982155,
+        "pos": "head"
+      }
+    }
+  },
+  "clip": {
+    "retrieval": {
+      "1": {
+        "R@1": 0.027000000700354576,
+        "R@10": 0.16300000250339508,
+        "MedR": 60.0,
+        "n_gallery": 1000
+      },
+      "2": {
+        "R@1": 0.019999999552965164,
+        "R@10": 0.1459999978542328,
+        "MedR": 76.0,
+        "n_gallery": 1000
+      },
+      "8": {
+        "R@1": 0.003307607490569353,
+        "R@10": 0.02315325289964676,
+        "MedR": 319.0,
+        "n_gallery": 907
+      }
+    },
+    "per_image_cos": {
+      "1": {
+        "subj": 1,
+        "n_images": 1000,
+        "mean": 0.1734142005443573,
+        "median": 0.17357882857322693,
+        "p10": 0.051691051572561264,
+        "p90": 0.29163211584091187,
+        "top10_mean": 0.3280413746833801,
+        "frac_gt_0p10": 0.781000018119812,
+        "frac_gt_0p15": 0.6050000190734863,
+        "frac_gt_0p20": 0.3889999985694885
+      },
+      "2": {
+        "subj": 2,
+        "n_images": 1000,
+        "mean": 0.16782937943935394,
+        "median": 0.1642238348722458,
+        "p10": 0.051598671823740005,
+        "p90": 0.2888190448284149,
+        "top10_mean": 0.32739219069480896,
+        "frac_gt_0p10": 0.7570000290870667,
+        "frac_gt_0p15": 0.5690000057220459,
+        "frac_gt_0p20": 0.36000001430511475
+      },
+      "8": {
+        "subj": 8,
+        "n_images": 907,
+        "mean": 0.06949316710233688,
+        "median": 0.06807168573141098,
+        "p10": -0.03425745293498039,
+        "p90": 0.17213286459445953,
+        "top10_mean": 0.2137099653482437,
+        "frac_gt_0p10": 0.3450937271118164,
+        "frac_gt_0p15": 0.17089305818080902,
+        "frac_gt_0p20": 0.05071664974093437
+      }
+    },
+    "pair_corr": {
+      "1-8": {
+        "pearson": 0.05857320502400398,
+        "spearman": 0.0339093878865242,
+        "n_images": 907
+      },
+      "1-2": {
+        "pearson": 0.31368061900138855,
+        "spearman": 0.3038698434829712,
+        "n_images": 1000
+      }
+    },
+    "top_readable": {
+      "1": [
+        {
+          "nsd": 21508,
+          "clip_cos": 0.439,
+          "ref": "A pizza sitting on a table, with four slices cut on it."
+        },
+        {
+          "nsd": 70360,
+          "clip_cos": 0.412,
+          "ref": "A white toilet sitting next to a shower."
+        },
+        {
+          "nsd": 54698,
+          "clip_cos": 0.402,
+          "ref": "The skier is moving quickly down the mountain, leaving a trail of white powder."
+        },
+        {
+          "nsd": 51051,
+          "clip_cos": 0.389,
+          "ref": "A bathroom with a bathtub, toilet, and other items. "
+        },
+        {
+          "nsd": 40153,
+          "clip_cos": 0.389,
+          "ref": "A snowboarder in red and orange snow gear picks himself up off the snowy ground."
+        },
+        {
+          "nsd": 61809,
+          "clip_cos": 0.382,
+          "ref": "Pizza with a spiky crust features olives, tomato sauce and vegetables."
+        },
+        {
+          "nsd": 66489,
+          "clip_cos": 0.379,
+          "ref": "A room that has a kitchen and a shelf with glasses and different alcoholic drinks on it."
+        },
+        {
+          "nsd": 15025,
+          "clip_cos": 0.377,
+          "ref": "A guy on skis squatting while going down a hill."
+        }
+      ],
+      "2": [
+        {
+          "nsd": 19292,
+          "clip_cos": 0.426,
+          "ref": "A half bathroom with tile flooring and a toilet and vanity."
+        },
+        {
+          "nsd": 34186,
+          "clip_cos": 0.405,
+          "ref": "A white bathroom with pedestal sink and small cabinet and daylight window"
+        },
+        {
+          "nsd": 18483,
+          "clip_cos": 0.395,
+          "ref": "A couple of zebra walking across a grass covered field."
+        },
+        {
+          "nsd": 54824,
+          "clip_cos": 0.394,
+          "ref": "A white toilet sitting next ot a bathroom sink under a mirror."
+        },
+        {
+          "nsd": 10907,
+          "clip_cos": 0.389,
+          "ref": "a bath room with a bath tub two sinks and a window"
+        },
+        {
+          "nsd": 28788,
+          "clip_cos": 0.383,
+          "ref": "A bathroom has a white brick wall and a two drawer cabinet and a toilet."
+        },
+        {
+          "nsd": 9865,
+          "clip_cos": 0.382,
+          "ref": "A very close up view of some very tasty looking food."
+        },
+        {
+          "nsd": 49076,
+          "clip_cos": 0.38,
+          "ref": "The inside of a bathroom with two sinks."
+        }
+      ],
+      "8": [
+        {
+          "nsd": 17485,
+          "clip_cos": 0.304,
+          "ref": "A bathroom with a vanity mirror sitting above a toilet next to a bathtub."
+        },
+        {
+          "nsd": 5204,
+          "clip_cos": 0.304,
+          "ref": "A train is going down the tracks on a mountainside."
+        },
+        {
+          "nsd": 60094,
+          "clip_cos": 0.296,
+          "ref": "A wood bunk bed with blue striped sheets."
+        },
+        {
+          "nsd": 35790,
+          "clip_cos": 0.296,
+          "ref": "A man riding a surfboard along a wave."
+        },
+        {
+          "nsd": 9917,
+          "clip_cos": 0.293,
+          "ref": "a blue korean air airplane sitting on the track"
+        },
+        {
+          "nsd": 41934,
+          "clip_cos": 0.287,
+          "ref": "Park bench on snowy elevated viewing area above city."
+        },
+        {
+          "nsd": 51171,
+          "clip_cos": 0.278,
+          "ref": "This trees has a lot of oranges growing on it."
+        },
+        {
+          "nsd": 57822,
+          "clip_cos": 0.271,
+          "ref": "A large tray holding an assortment of decorated doughnuts"
+        }
+      ]
+    }
+  }
+}

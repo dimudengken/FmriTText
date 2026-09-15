@@ -1,0 +1,495 @@
+{
+  "stage1": "checkpoints/stage1/stage1_e84_noridge.pt",
+  "split": "new_test",
+  "subjects": [
+    1,
+    2,
+    8
+  ],
+  "head": "probe:head_post.pt",
+  "bypass_mlp": true,
+  "head_diag": {
+    "1": {
+      "cos_post_mlp": null
+    },
+    "2": {
+      "cos_post_mlp": null
+    },
+    "8": {
+      "cos_post_mlp": null
+    }
+  },
+  "within_same": {
+    "1": {
+      "readout": 0.06342233215109445,
+      "mlp_out": 0.3580847665797919,
+      "enc": 0.41220683807786557,
+      "head": 0.5218703241120093
+    },
+    "2": {
+      "readout": 0.10367137274867855,
+      "mlp_out": 0.36743546968232843,
+      "enc": 0.41876124355196953,
+      "head": 0.5438445523236878
+    },
+    "8": {
+      "readout": 0.10853494597187353,
+      "mlp_out": 0.21107023771835234,
+      "enc": 0.2347697838010174,
+      "head": 0.33073329224978276
+    }
+  },
+  "within_diff": {
+    "1": {
+      "n_images": 1000,
+      "readout": {
+        "within_diff": -0.018411042168736458
+      },
+      "mlp_out": {
+        "within_diff": 0.03709132969379425
+      },
+      "enc": {
+        "within_diff": 0.0297438595443964
+      },
+      "head": {
+        "within_diff": 0.07262799888849258
+      }
+    },
+    "2": {
+      "n_images": 1000,
+      "readout": {
+        "within_diff": -0.011636482551693916
+      },
+      "mlp_out": {
+        "within_diff": 0.03280893340706825
+      },
+      "enc": {
+        "within_diff": 0.05000723525881767
+      },
+      "head": {
+        "within_diff": 0.07448538392782211
+      }
+    },
+    "8": {
+      "n_images": 907,
+      "readout": {
+        "within_diff": -0.001960805617272854
+      },
+      "mlp_out": {
+        "within_diff": 0.06514876335859299
+      },
+      "enc": {
+        "within_diff": 0.049313317984342575
+      },
+      "head": {
+        "within_diff": 0.15431448817253113
+      }
+    }
+  },
+  "pairs": {
+    "1-8": {
+      "n_common_images": 907,
+      "readout": {
+        "cross_same": 0.08714120835065842,
+        "cross_diff": 0.006403764709830284,
+        "gap_vs_within": 1.3739830339738563,
+        "noise_ceiling": 0.0829670982584618,
+        "align_eff": 1.0503104264197995,
+        "MedR": 405.0,
+        "R@1": 0.005512678995728493,
+        "R@10": 0.03197354078292847
+      },
+      "mlp_out": {
+        "cross_same": 0.09853498637676239,
+        "cross_diff": 0.02937108650803566,
+        "gap_vs_within": 0.27517223733896506,
+        "noise_ceiling": 0.2749200552984765,
+        "align_eff": 0.3584132349667414,
+        "MedR": 271.0,
+        "R@1": 0.004410143475979567,
+        "R@10": 0.034178610891103745
+      },
+      "enc": {
+        "cross_same": 0.1569821685552597,
+        "cross_diff": 0.02723538875579834,
+        "gap_vs_within": 0.3808334895347027,
+        "noise_ceiling": 0.3110847316356775,
+        "align_eff": 0.5046283298117863,
+        "MedR": 255.0,
+        "R@1": 0.004410143475979567,
+        "R@10": 0.034178610891103745
+      },
+      "head": {
+        "cross_same": 0.34908851981163025,
+        "cross_diff": 0.100332111120224,
+        "gap_vs_within": 0.6689181271336386,
+        "noise_ceiling": 0.4154514296774366,
+        "align_eff": 0.8402631327630005,
+        "MedR": 167.0,
+        "R@1": 0.004410143475979567,
+        "R@10": 0.05512678995728493
+      },
+      "token": {
+        "n_token_images": 200,
+        "n_pos": 128,
+        "token_mean_cos": 0.1689003079032409,
+        "global_same_enc": 0.1569821685552597
+      },
+      "clip_cos_a": 0.13372266830161805,
+      "clip_cos_b": 0.08981400818046482
+    },
+    "1-2": {
+      "n_common_images": 1000,
+      "readout": {
+        "cross_same": 0.18342319130897522,
+        "cross_diff": -0.030668681487441063,
+        "gap_vs_within": 2.8920915565198113,
+        "noise_ceiling": 0.08108686846232634,
+        "align_eff": 2.2620578989826847,
+        "MedR": 404.0,
+        "R@1": 0.00800000037997961,
+        "R@10": 0.04899999871850014
+      },
+      "mlp_out": {
+        "cross_same": 0.18738645315170288,
+        "cross_diff": 0.020016629248857498,
+        "gap_vs_within": 0.5233019403240871,
+        "noise_ceiling": 0.362729988275484,
+        "align_eff": 0.5166003892939443,
+        "MedR": 125.0,
+        "R@1": 0.010999999940395355,
+        "R@10": 0.08900000154972076
+      },
+      "enc": {
+        "cross_same": 0.3130279779434204,
+        "cross_diff": 0.031374648213386536,
+        "gap_vs_within": 0.7593954030531868,
+        "noise_ceiling": 0.4154711158601911,
+        "align_eff": 0.7534289773558085,
+        "MedR": 115.0,
+        "R@1": 0.010999999940395355,
+        "R@10": 0.10000000149011612
+      },
+      "head": {
+        "cross_same": 0.5236928462982178,
+        "cross_diff": 0.0679243952035904,
+        "gap_vs_within": 1.0034922893715208,
+        "noise_ceiling": 0.532744153217765,
+        "align_eff": 0.9830100304904755,
+        "MedR": 81.0,
+        "R@1": 0.028999999165534973,
+        "R@10": 0.14800000190734863
+      },
+      "token": {
+        "n_token_images": 200,
+        "n_pos": 128,
+        "token_mean_cos": 0.2975308839342324,
+        "global_same_enc": 0.3130279779434204
+      },
+      "clip_cos_a": 0.133163202019874,
+      "clip_cos_b": 0.13426731977798045
+    }
+  },
+  "subject_probe": {
+    "readout": {
+      "acc": 0.3498713708195516,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    },
+    "mlp_out": {
+      "acc": 0.7416391032708562,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    },
+    "enc": {
+      "acc": 0.5593531789783168,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    },
+    "head": {
+      "acc": 0.4424843807423741,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    }
+  },
+  "procrustes": {
+    "1-8": {
+      "readout": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 200.0,
+        "MedR_procrustes": 204.0,
+        "MedR_linear": 226.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.0044052861630916595,
+        "R@1_linear": 0.0044052861630916595,
+        "cross_same_unaligned": 0.09362779557704926,
+        "cross_same_procrustes": 0.08888088911771774,
+        "cross_same_linear": 0.041408736258745193,
+        "pos": "readout"
+      },
+      "mlp_out": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 136.0,
+        "MedR_procrustes": 43.0,
+        "MedR_linear": 125.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.06828194111585617,
+        "R@1_linear": 0.0044052861630916595,
+        "cross_same_unaligned": 0.09428701549768448,
+        "cross_same_procrustes": 0.23739080131053925,
+        "cross_same_linear": 0.15735876560211182,
+        "pos": "mlp_out"
+      },
+      "enc": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 142.0,
+        "MedR_procrustes": 56.0,
+        "MedR_linear": 164.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.035242289304733276,
+        "R@1_linear": 0.0022026430815458298,
+        "cross_same_unaligned": 0.15374307334423065,
+        "cross_same_procrustes": 0.2838298976421356,
+        "cross_same_linear": 0.10657486319541931,
+        "pos": "enc"
+      },
+      "head": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 90.0,
+        "MedR_procrustes": 61.0,
+        "MedR_linear": 166.0,
+        "R@1_unaligned": 0.011013215407729149,
+        "R@1_procrustes": 0.030837005004286766,
+        "R@1_linear": 0.0044052861630916595,
+        "cross_same_unaligned": 0.3451389670372009,
+        "cross_same_procrustes": 0.4090994596481323,
+        "cross_same_linear": 0.1639493852853775,
+        "pos": "head"
+      }
+    }
+  },
+  "clip": {
+    "retrieval": {
+      "1": {
+        "R@1": 0.013000000268220901,
+        "R@10": 0.14499999582767487,
+        "MedR": 67.0,
+        "n_gallery": 1000
+      },
+      "2": {
+        "R@1": 0.009999999776482582,
+        "R@10": 0.13600000739097595,
+        "MedR": 67.0,
+        "n_gallery": 1000
+      },
+      "8": {
+        "R@1": 0.00771775096654892,
+        "R@10": 0.05181918293237686,
+        "MedR": 175.0,
+        "n_gallery": 907
+      }
+    },
+    "per_image_cos": {
+      "1": {
+        "subj": 1,
+        "n_images": 1000,
+        "mean": 0.1331631988286972,
+        "median": 0.13578744232654572,
+        "p10": 0.07354249805212021,
+        "p90": 0.19162783026695251,
+        "top10_mean": 0.21292228996753693,
+        "frac_gt_0p10": 0.7590000033378601,
+        "frac_gt_0p15": 0.36800000071525574,
+        "frac_gt_0p20": 0.07400000095367432
+      },
+      "2": {
+        "subj": 2,
+        "n_images": 1000,
+        "mean": 0.13426731526851654,
+        "median": 0.13667774200439453,
+        "p10": 0.07071350514888763,
+        "p90": 0.1920841485261917,
+        "top10_mean": 0.2148401439189911,
+        "frac_gt_0p10": 0.7749999761581421,
+        "frac_gt_0p15": 0.3880000114440918,
+        "frac_gt_0p20": 0.07900000363588333
+      },
+      "8": {
+        "subj": 8,
+        "n_images": 907,
+        "mean": 0.08981400728225708,
+        "median": 0.0944124311208725,
+        "p10": 0.012808380648493767,
+        "p90": 0.16026712954044342,
+        "top10_mean": 0.18527983129024506,
+        "frac_gt_0p10": 0.45644983649253845,
+        "frac_gt_0p15": 0.13891951739788055,
+        "frac_gt_0p20": 0.025358324870467186
+      }
+    },
+    "pair_corr": {
+      "1-8": {
+        "pearson": 0.24412022531032562,
+        "spearman": 0.2628384530544281,
+        "n_images": 907
+      },
+      "1-2": {
+        "pearson": 0.4462266266345978,
+        "spearman": 0.4560147225856781,
+        "n_images": 1000
+      }
+    },
+    "top_readable": {
+      "1": [
+        {
+          "nsd": 7840,
+          "clip_cos": 0.264,
+          "ref": " A tan curly haired teddy bear with a big purple bow tie."
+        },
+        {
+          "nsd": 17595,
+          "clip_cos": 0.256,
+          "ref": "A large propeller airplane flying through a cloudy sky."
+        },
+        {
+          "nsd": 17485,
+          "clip_cos": 0.253,
+          "ref": "A bathroom with a vanity mirror sitting above a toilet next to a bathtub."
+        },
+        {
+          "nsd": 71241,
+          "clip_cos": 0.243,
+          "ref": "A group of appliances sit in a room."
+        },
+        {
+          "nsd": 21508,
+          "clip_cos": 0.243,
+          "ref": "A pizza sitting on a table, with four slices cut on it."
+        },
+        {
+          "nsd": 70758,
+          "clip_cos": 0.243,
+          "ref": "THERE IS A BED AND A WINDWO AND TWO CHAIRS ON THE SIDE "
+        },
+        {
+          "nsd": 9865,
+          "clip_cos": 0.242,
+          "ref": "A very close up view of some very tasty looking food."
+        },
+        {
+          "nsd": 50734,
+          "clip_cos": 0.235,
+          "ref": "The two trains are parked side by side one another on the railroad tracks. "
+        }
+      ],
+      "2": [
+        {
+          "nsd": 72948,
+          "clip_cos": 0.269,
+          "ref": "A living room filled with a large rug and furniture."
+        },
+        {
+          "nsd": 17942,
+          "clip_cos": 0.267,
+          "ref": "a fully baked pizza sitting on a wooden cutting board"
+        },
+        {
+          "nsd": 10907,
+          "clip_cos": 0.266,
+          "ref": "a bath room with a bath tub two sinks and a window"
+        },
+        {
+          "nsd": 53152,
+          "clip_cos": 0.26,
+          "ref": "a kitchen with a stove a refrigerator next to it "
+        },
+        {
+          "nsd": 63825,
+          "clip_cos": 0.251,
+          "ref": "Red and blue busses are parked along the street."
+        },
+        {
+          "nsd": 7840,
+          "clip_cos": 0.25,
+          "ref": " A tan curly haired teddy bear with a big purple bow tie."
+        },
+        {
+          "nsd": 24649,
+          "clip_cos": 0.249,
+          "ref": "A white plate topped with spaghetti and broccoli."
+        },
+        {
+          "nsd": 28788,
+          "clip_cos": 0.249,
+          "ref": "A bathroom has a white brick wall and a two drawer cabinet and a toilet."
+        }
+      ],
+      "8": [
+        {
+          "nsd": 3157,
+          "clip_cos": 0.247,
+          "ref": "a plate of yummy food of some kind"
+        },
+        {
+          "nsd": 35986,
+          "clip_cos": 0.233,
+          "ref": "A cat peeks out from behind a slightly opened door."
+        },
+        {
+          "nsd": 63825,
+          "clip_cos": 0.227,
+          "ref": "Red and blue busses are parked along the street."
+        },
+        {
+          "nsd": 19292,
+          "clip_cos": 0.226,
+          "ref": "A half bathroom with tile flooring and a toilet and vanity."
+        },
+        {
+          "nsd": 17485,
+          "clip_cos": 0.224,
+          "ref": "A bathroom with a vanity mirror sitting above a toilet next to a bathtub."
+        },
+        {
+          "nsd": 16917,
+          "clip_cos": 0.224,
+          "ref": "two black trays of different types of food and some bread"
+        },
+        {
+          "nsd": 50882,
+          "clip_cos": 0.222,
+          "ref": "A smaller elephant reaching for an older one with its trunk."
+        },
+        {
+          "nsd": 17942,
+          "clip_cos": 0.219,
+          "ref": "a fully baked pizza sitting on a wooden cutting board"
+        }
+      ]
+    }
+  }
+}

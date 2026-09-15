@@ -30,6 +30,33 @@ def collate_batch(batch):
     return out
 
 
+def collate_mixed_batch(batch):
+    """混合被试 batch：按 subj 分组，组内体素同长可堆叠。
+
+    batch 是来自多个被试的 trial 列表（每个 trial 带自己的 "subj"）。返回
+    {"groups": {subj: {voxels, captions, nsd_idx, image}}, "subj_list": [...]}，
+    供训练循环按 subj 分组跑 KeyValueEncoder（体素数逐被试不同，无法跨被试堆叠）。
+    """
+    groups = {}
+    for b in batch:
+        g = groups.setdefault(b["subj"],
+                              {"voxels": [], "captions": [], "nsd_idx": [], "image": []})
+        g["voxels"].append(b["voxels"])
+        g["captions"].append(b["caption"])
+        g["nsd_idx"].append(b["nsd_idx"])
+        if "image" in b:
+            g["image"].append(b["image"])
+    out = {}
+    for s, g in groups.items():
+        gg = {"voxels": torch.stack(g["voxels"]),
+              "captions": g["captions"],
+              "nsd_idx": torch.tensor(g["nsd_idx"], dtype=torch.long)}
+        if g["image"]:
+            gg["image"] = torch.stack(g["image"])
+        out[s] = gg
+    return {"groups": out, "subj_list": sorted(out.keys())}
+
+
 class SubjectBatchSampler(Sampler):
     """把样本按被试分组，形成单被试 batch，再打乱 batch 顺序（各被试等权）。"""
 
@@ -64,6 +91,62 @@ class SubjectBatchSampler(Sampler):
 
     def __len__(self):
         return len(self.batches)
+
+
+class MixedSubjectBatchSampler(Sampler):
+    """每个 batch 从全部训练被试各取 batch_size//n_subj 个 trial → 天然跨被试 batch。
+
+    BIT-LLM Sec 3.4 的机制：in-batch InfoNCE 负样本跨被试，迫使不同个体的 fMRI 嵌入按
+    语义内容聚集而非被试身份。每次取样本用 torch.randint（允许跨 batch 重复，类似负采样），
+    保证每个 batch 都含全部训练被试。n_batches = min(len(s)//per_subj)，每个被试每 epoch
+    至少完整覆盖一轮。体素数逐被试不同 → 训练循环须按 subj 分组跑编码器再拼接（encoder
+    本身不用改，只换 loader + 循环组织）。
+    """
+
+    def __init__(self, dataset_lengths, batch_size, seed=42):
+        g = torch.Generator().manual_seed(seed)
+        n_subj = len(dataset_lengths)
+        per_subj = batch_size // n_subj
+        if per_subj < 1:
+            raise ValueError(f"batch_size {batch_size} < n_subj {n_subj}，无法混合被试 batch")
+        self.offsets = np.cumsum([0] + list(dataset_lengths))
+        self.lengths = list(dataset_lengths)
+        self.n_batches = min(l // per_subj for l in dataset_lengths)
+        batches = []
+        for _ in range(self.n_batches):
+            chunk = []
+            for s in range(n_subj):
+                idx = torch.randint(0, self.lengths[s], (per_subj,), generator=g).tolist()
+                chunk.extend([self.offsets[s] + i for i in idx])
+            batches.append(chunk)
+        self.batches = batches
+
+    def __iter__(self):
+        for chunk in self.batches:
+            yield chunk
+
+    def __len__(self):
+        return len(self.batches)
+
+
+def build_mixed_train_loader(data_path, subj_list, captions_by_nsd_idx, batch_size,
+                             return_image=True, num_workers=0, seed=42,
+                             splits=("train", "new_test")):
+    """S1-7 训练 DataLoader（混合被试 batch，BIT-LLM Sec 3.4 跨被试对比机制）。
+
+    每个 batch 含全部训练被试的 trial（各 batch_size//n_subj 个），collate 按 subj 分组。
+    splits 默认 train∪new_test；BIT-LLM 协议用 ("train",) 剔除 shared1000。
+    """
+    images = preprocessing.load_images_handle(data_path)
+    datasets = [
+        build_subject_dataset(data_path, s, list(splits), captions_by_nsd_idx,
+                              return_image=return_image, images=images)
+        for s in subj_list
+    ]
+    concat = ConcatDataset(datasets)
+    sampler = MixedSubjectBatchSampler([len(ds) for ds in datasets], batch_size, seed=seed)
+    return DataLoader(concat, batch_sampler=sampler, collate_fn=collate_mixed_batch,
+                      num_workers=num_workers)
 
 
 def build_train_loader(data_path, subj_list, captions_by_nsd_idx, batch_size,

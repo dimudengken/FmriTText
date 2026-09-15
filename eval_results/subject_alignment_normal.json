@@ -1,0 +1,494 @@
+{
+  "stage1": "checkpoints/stage1/stage1_e84_noridge.pt",
+  "split": "new_test",
+  "subjects": [
+    1,
+    2,
+    8
+  ],
+  "bypass_mlp": false,
+  "head_diag": {
+    "1": {
+      "cos_post_mlp": 0.20093995412190754
+    },
+    "2": {
+      "cos_post_mlp": 0.19659016370773316
+    },
+    "8": {
+      "cos_post_mlp": 0.13840419631553524
+    }
+  },
+  "within_same": {
+    "1": {
+      "readout": 0.06342233215109445,
+      "mlp_out": 0.4296541681289673,
+      "enc": 0.2971546121024294,
+      "head": 0.30509280108334497
+    },
+    "2": {
+      "readout": 0.10367137274867855,
+      "mlp_out": 0.4331859197616577,
+      "enc": 0.3075794690533076,
+      "head": 0.31960195986554024
+    },
+    "8": {
+      "readout": 0.10853494597187353,
+      "mlp_out": 0.32545719273368934,
+      "enc": 0.1125872866366078,
+      "head": 0.10279536451451364
+    }
+  },
+  "within_diff": {
+    "1": {
+      "n_images": 1000,
+      "readout": {
+        "within_diff": -0.018411042168736458
+      },
+      "mlp_out": {
+        "within_diff": 0.4113369286060333
+      },
+      "enc": {
+        "within_diff": 0.05225859209895134
+      },
+      "head": {
+        "within_diff": 0.010986952111124992
+      }
+    },
+    "2": {
+      "n_images": 1000,
+      "readout": {
+        "within_diff": -0.011636482551693916
+      },
+      "mlp_out": {
+        "within_diff": 0.4076409637928009
+      },
+      "enc": {
+        "within_diff": 0.05470845103263855
+      },
+      "head": {
+        "within_diff": 0.018607579171657562
+      }
+    },
+    "8": {
+      "n_images": 907,
+      "readout": {
+        "within_diff": -0.001960805617272854
+      },
+      "mlp_out": {
+        "within_diff": 0.37750673294067383
+      },
+      "enc": {
+        "within_diff": 0.0620894655585289
+      },
+      "head": {
+        "within_diff": 0.0450340174138546
+      }
+    }
+  },
+  "pairs": {
+    "1-8": {
+      "n_common_images": 907,
+      "readout": {
+        "cross_same": 0.08714120835065842,
+        "cross_diff": 0.006403764709830284,
+        "gap_vs_within": 1.3739830339738563,
+        "noise_ceiling": 0.0829670982584618,
+        "align_eff": 1.0503104264197995,
+        "MedR": 405.0,
+        "R@1": 0.005512678995728493,
+        "R@10": 0.03197354078292847
+      },
+      "mlp_out": {
+        "cross_same": 0.38820555806159973,
+        "cross_diff": 0.3686463236808777,
+        "gap_vs_within": 0.9035302968248498,
+        "noise_ceiling": 0.3739438987409505,
+        "align_eff": 1.0381384998355836,
+        "MedR": 327.0,
+        "R@1": 0.004410143475979567,
+        "R@10": 0.03528114780783653
+      },
+      "enc": {
+        "cross_same": 0.12344919145107269,
+        "cross_diff": 0.041270025074481964,
+        "gap_vs_within": 0.41543757499721956,
+        "noise_ceiling": 0.1829093532003386,
+        "align_eff": 0.6749200589860495,
+        "MedR": 247.0,
+        "R@1": 0.004410143475979567,
+        "R@10": 0.034178610891103745
+      },
+      "head": {
+        "cross_same": 0.11526306718587875,
+        "cross_diff": 0.013782785274088383,
+        "gap_vs_within": 0.3777967450447685,
+        "noise_ceiling": 0.17709355069599925,
+        "align_eff": 0.6508597672409913,
+        "MedR": 256.0,
+        "R@1": 0.004410143475979567,
+        "R@10": 0.033076073974370956
+      },
+      "token": {
+        "n_token_images": 200,
+        "n_pos": 128,
+        "token_mean_cos": 0.28701978581026194,
+        "global_same_enc": 0.12344919145107269
+      },
+      "clip_cos_a": 0.18202810821071053,
+      "clip_cos_b": 0.07891478577357652
+    },
+    "1-2": {
+      "n_common_images": 1000,
+      "readout": {
+        "cross_same": 0.18342319130897522,
+        "cross_diff": -0.030668681487441063,
+        "gap_vs_within": 2.8920915565198113,
+        "noise_ceiling": 0.08108686846232634,
+        "align_eff": 2.2620578989826847,
+        "MedR": 404.0,
+        "R@1": 0.00800000037997961,
+        "R@10": 0.04899999871850014
+      },
+      "mlp_out": {
+        "cross_same": 0.44531649351119995,
+        "cross_diff": 0.3802970349788666,
+        "gap_vs_within": 1.0364533304784125,
+        "noise_ceiling": 0.43141642991473633,
+        "align_eff": 1.032219597198027,
+        "MedR": 114.0,
+        "R@1": 0.014999999664723873,
+        "R@10": 0.11900000274181366
+      },
+      "enc": {
+        "cross_same": 0.3238130509853363,
+        "cross_diff": 0.04559755697846413,
+        "gap_vs_within": 1.0897123510696773,
+        "noise_ceiling": 0.3023221093754256,
+        "align_eff": 1.0710862386290878,
+        "MedR": 80.0,
+        "R@1": 0.029999999329447746,
+        "R@10": 0.1459999978542328
+      },
+      "head": {
+        "cross_same": 0.3521265387535095,
+        "cross_diff": 0.006619621068239212,
+        "gap_vs_within": 1.1541620697150305,
+        "noise_ceiling": 0.3122631216892326,
+        "align_eff": 1.1276597020122965,
+        "MedR": 88.0,
+        "R@1": 0.02500000037252903,
+        "R@10": 0.13600000739097595
+      },
+      "token": {
+        "n_token_images": 200,
+        "n_pos": 128,
+        "token_mean_cos": 0.40914076395332816,
+        "global_same_enc": 0.3238130509853363
+      },
+      "clip_cos_a": 0.18029000642616302,
+      "clip_cos_b": 0.17487512840004638
+    }
+  },
+  "subject_probe": {
+    "readout": {
+      "acc": 0.3498713708195516,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    },
+    "mlp_out": {
+      "acc": 0.9650863653068724,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    },
+    "enc": {
+      "acc": 0.6725468577728776,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    },
+    "head": {
+      "acc": 0.5093715545755237,
+      "chance": 0.3333333333333333,
+      "n_queries": 2721,
+      "subjects": [
+        1,
+        2,
+        8
+      ]
+    }
+  },
+  "procrustes": {
+    "1-8": {
+      "readout": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 200.0,
+        "MedR_procrustes": 204.0,
+        "MedR_linear": 226.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.0044052861630916595,
+        "R@1_linear": 0.0044052861630916595,
+        "cross_same_unaligned": 0.09362779557704926,
+        "cross_same_procrustes": 0.08888088911771774,
+        "cross_same_linear": 0.041408736258745193,
+        "pos": "readout"
+      },
+      "mlp_out": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 170.0,
+        "MedR_procrustes": 81.0,
+        "MedR_linear": 145.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.017621144652366638,
+        "R@1_linear": 0.019823787733912468,
+        "cross_same_unaligned": 0.38491979241371155,
+        "cross_same_procrustes": 0.4385702610015869,
+        "cross_same_linear": 0.37992238998413086,
+        "pos": "mlp_out"
+      },
+      "enc": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 125.0,
+        "MedR_procrustes": 102.0,
+        "MedR_linear": 192.0,
+        "R@1_unaligned": 0.008810572326183319,
+        "R@1_procrustes": 0.015418502502143383,
+        "R@1_linear": 0.0,
+        "cross_same_unaligned": 0.12068226933479309,
+        "cross_same_procrustes": 0.15164302289485931,
+        "cross_same_linear": 0.058236319571733475,
+        "pos": "enc"
+      },
+      "head": {
+        "n_fit": 453,
+        "n_test": 454,
+        "MedR_unaligned": 128.0,
+        "MedR_procrustes": 118.0,
+        "MedR_linear": 204.0,
+        "R@1_unaligned": 0.0044052861630916595,
+        "R@1_procrustes": 0.008810572326183319,
+        "R@1_linear": 0.0022026430815458298,
+        "cross_same_unaligned": 0.11306584626436234,
+        "cross_same_procrustes": 0.13084352016448975,
+        "cross_same_linear": 0.032943736761808395,
+        "pos": "head"
+      }
+    }
+  },
+  "clip": {
+    "retrieval": {
+      "1": {
+        "R@1": 0.03099999949336052,
+        "R@10": 0.16699999570846558,
+        "MedR": 59.0,
+        "n_gallery": 1000
+      },
+      "2": {
+        "R@1": 0.013000000268220901,
+        "R@10": 0.1469999998807907,
+        "MedR": 69.0,
+        "n_gallery": 1000
+      },
+      "8": {
+        "R@1": 0.003307607490569353,
+        "R@10": 0.02205071598291397,
+        "MedR": 301.0,
+        "n_gallery": 907
+      }
+    },
+    "per_image_cos": {
+      "1": {
+        "subj": 1,
+        "n_images": 1000,
+        "mean": 0.18029001355171204,
+        "median": 0.18078115582466125,
+        "p10": 0.05646783858537674,
+        "p90": 0.295126348733902,
+        "top10_mean": 0.32989105582237244,
+        "frac_gt_0p10": 0.8090000152587891,
+        "frac_gt_0p15": 0.6449999809265137,
+        "frac_gt_0p20": 0.4129999876022339
+      },
+      "2": {
+        "subj": 2,
+        "n_images": 1000,
+        "mean": 0.17487512528896332,
+        "median": 0.17434774339199066,
+        "p10": 0.05671348050236702,
+        "p90": 0.2960348427295685,
+        "top10_mean": 0.33057931065559387,
+        "frac_gt_0p10": 0.7860000133514404,
+        "frac_gt_0p15": 0.597000002861023,
+        "frac_gt_0p20": 0.39399999380111694
+      },
+      "8": {
+        "subj": 8,
+        "n_images": 907,
+        "mean": 0.07891479134559631,
+        "median": 0.07667618989944458,
+        "p10": -0.027285918593406677,
+        "p90": 0.18891535699367523,
+        "top10_mean": 0.22696591913700104,
+        "frac_gt_0p10": 0.4013230502605438,
+        "frac_gt_0p15": 0.19845645129680634,
+        "frac_gt_0p20": 0.07828004658222198
+      }
+    },
+    "pair_corr": {
+      "1-8": {
+        "pearson": 0.05445539578795433,
+        "spearman": 0.03425392508506775,
+        "n_images": 907
+      },
+      "1-2": {
+        "pearson": 0.34368595480918884,
+        "spearman": 0.3388110101222992,
+        "n_images": 1000
+      }
+    },
+    "top_readable": {
+      "1": [
+        {
+          "nsd": 21508,
+          "clip_cos": 0.433,
+          "ref": "A pizza sitting on a table, with four slices cut on it."
+        },
+        {
+          "nsd": 70360,
+          "clip_cos": 0.416,
+          "ref": "A white toilet sitting next to a shower."
+        },
+        {
+          "nsd": 54698,
+          "clip_cos": 0.399,
+          "ref": "The skier is moving quickly down the mountain, leaving a trail of white powder."
+        },
+        {
+          "nsd": 15025,
+          "clip_cos": 0.391,
+          "ref": "A guy on skis squatting while going down a hill."
+        },
+        {
+          "nsd": 40153,
+          "clip_cos": 0.388,
+          "ref": "A snowboarder in red and orange snow gear picks himself up off the snowy ground."
+        },
+        {
+          "nsd": 17595,
+          "clip_cos": 0.381,
+          "ref": "A large propeller airplane flying through a cloudy sky."
+        },
+        {
+          "nsd": 28595,
+          "clip_cos": 0.378,
+          "ref": "An aerial shot of a show boarder overhead."
+        },
+        {
+          "nsd": 51051,
+          "clip_cos": 0.376,
+          "ref": "A bathroom with a bathtub, toilet, and other items. "
+        }
+      ],
+      "2": [
+        {
+          "nsd": 19292,
+          "clip_cos": 0.434,
+          "ref": "A half bathroom with tile flooring and a toilet and vanity."
+        },
+        {
+          "nsd": 54824,
+          "clip_cos": 0.405,
+          "ref": "A white toilet sitting next ot a bathroom sink under a mirror."
+        },
+        {
+          "nsd": 34186,
+          "clip_cos": 0.398,
+          "ref": "A white bathroom with pedestal sink and small cabinet and daylight window"
+        },
+        {
+          "nsd": 35798,
+          "clip_cos": 0.389,
+          "ref": "Zebras grazing on grass in large open area near trees."
+        },
+        {
+          "nsd": 10907,
+          "clip_cos": 0.389,
+          "ref": "a bath room with a bath tub two sinks and a window"
+        },
+        {
+          "nsd": 3049,
+          "clip_cos": 0.387,
+          "ref": "A person in a wetsuit surfing on a turquoise wave."
+        },
+        {
+          "nsd": 28788,
+          "clip_cos": 0.385,
+          "ref": "A bathroom has a white brick wall and a two drawer cabinet and a toilet."
+        },
+        {
+          "nsd": 49076,
+          "clip_cos": 0.385,
+          "ref": "The inside of a bathroom with two sinks."
+        }
+      ],
+      "8": [
+        {
+          "nsd": 17485,
+          "clip_cos": 0.338,
+          "ref": "A bathroom with a vanity mirror sitting above a toilet next to a bathtub."
+        },
+        {
+          "nsd": 5204,
+          "clip_cos": 0.309,
+          "ref": "A train is going down the tracks on a mountainside."
+        },
+        {
+          "nsd": 9917,
+          "clip_cos": 0.303,
+          "ref": "a blue korean air airplane sitting on the track"
+        },
+        {
+          "nsd": 35790,
+          "clip_cos": 0.299,
+          "ref": "A man riding a surfboard along a wave."
+        },
+        {
+          "nsd": 60094,
+          "clip_cos": 0.295,
+          "ref": "A wood bunk bed with blue striped sheets."
+        },
+        {
+          "nsd": 69214,
+          "clip_cos": 0.285,
+          "ref": "a train going down a track by some bushes and grass "
+        },
+        {
+          "nsd": 71894,
+          "clip_cos": 0.283,
+          "ref": "A herd of elephants is standing in tall grass"
+        },
+        {
+          "nsd": 57822,
+          "clip_cos": 0.275,
+          "ref": "A large tray holding an assortment of decorated doughnuts"
+        }
+      ]
+    }
+  }
+}

@@ -90,7 +90,7 @@ def sft_collate(batch, tokenizer, max_len):
 
 
 @torch.no_grad()
-def run_validation(model, val_loader, device, max_batches=0):
+def run_validation(model, val_loader, device, max_batches=0, use_ridge=True):
     """验证集上聚合 response-only CE（与训练 CE 同口径）。返回平均 CE。"""
     model.eval()
     ce_sum, n = 0.0, 0
@@ -102,7 +102,7 @@ def run_validation(model, val_loader, device, max_batches=0):
         ids = b["input_ids"].to(device)
         m = b["attention_mask"].to(device)
         l = b["labels"].to(device)
-        out = model(v, s, input_ids=ids, attention_mask=m, labels=l)
+        out = model(v, s, input_ids=ids, attention_mask=m, labels=l, use_ridge=use_ridge)
         ce_sum += out.loss.item() * v.size(0)
         n += v.size(0)
     model.train()
@@ -170,6 +170,12 @@ def main():
     ap.add_argument("--exclude_shared1000", action="store_true",
                     help="S1-7 训练只用 unique 图（split=train），剔除 shared1000（new_test）——"
                          "BIT-LLM 协议：S8 shared1000 成为干净 held-out，评估用 --split new_test")
+    # --- 跨被试机制换型（2026-08-31，BIT-LLM 配方）---
+    ap.add_argument("--no_ridge", action="store_true",
+                    help="stage1 编码器用 --no_ridge 训（读出头全共享、无 per-subject ridge）时，"
+                         "stage2 下游必须同步去 ridge：use_ridge=False 贯穿 forward/验证/diag。"
+                         "否则 BrainLLM 的 ridge 随机初始化会把 pre-ridge 特征搅碎白测。"
+                         "评估 run_eval 也须 --no_ridge 同传")
     ap.add_argument("--max_steps", type=int, default=None, help="快速冒烟用：跑够步数就停")
     ap.add_argument("--log_steps", type=int, default=10)
     ap.add_argument("--diag_batches", type=int, default=8,
@@ -202,14 +208,17 @@ def main():
                      proj_mode=args.proj_mode, o_proj_init=args.o_proj_init,
                      gate_mode=args.gate_mode, sem_kv=args.sem_kv).to(device)
     if args.proj_mode != "rmsnorm" or args.o_proj_init or args.gate_mode != "scalar" \
-            or args.sem_kv:
+            or args.sem_kv or args.no_ridge:
         print(f"[stage2] 改进 flag 生效：proj_mode={args.proj_mode} "
               f"o_proj_init={args.o_proj_init} gate_mode={args.gate_mode} "
               f"gate_reg={args.gate_reg} sem_lambda={args.sem_lambda} "
-              f"sem_kv={args.sem_kv} semclip_lambda={args.semclip_lambda}", flush=True)
+              f"sem_kv={args.sem_kv} semclip_lambda={args.semclip_lambda} "
+              f"no_ridge={args.no_ridge}", flush=True)
 
     if args.resume_encoder:
         ckpt = torch.load(args.resume_encoder, map_location="cpu")
+        if "model" in ckpt and isinstance(ckpt["model"], dict):
+            ckpt = ckpt["model"]  # last.pt 嵌套 {"model":...} 解包（stage1_encoder.pt 为 plain）
         # 必须剥前缀：子模块 load_state_dict 只认无前缀键（"region_feature_project.weight"）。
         # 旧版把带 "encoder." 前缀的键直接传给子模块 → strict=False 静默跳过全部 → 编码器
         # 保持随机初始化 —— 这是所有 stage2 训练/评估结果全废的真正根因（"23 tensors" 是
@@ -234,6 +243,8 @@ def main():
     stage1_head = None
     if args.resume_encoder:
         _h_ckpt = torch.load(args.resume_encoder, map_location="cpu")
+        if "model" in _h_ckpt and isinstance(_h_ckpt["model"], dict):
+            _h_ckpt = _h_ckpt["model"]  # 同上：嵌套 last.pt 解包，head 键才在顶层
         if "head.proj.weight" in _h_ckpt:
             stage1_head = nn.Linear(_h_ckpt["head.proj.weight"].size(1),
                                     _h_ckpt["head.proj.weight"].size(0)).to(device).float()
@@ -388,16 +399,21 @@ def main():
             if _i >= 3:
                 break
             _v = _b["voxels"].to(device)
-            _r = model.ridge(model.encoder(_v, _b["subj"]), _b["subj"]).mean(1).float()
-            _z = model.ridge(model.encoder(torch.zeros_like(_v), _b["subj"]), _b["subj"]).mean(1).float()
+            _s = _b["subj"]
+            _r = model.encoder(_v, _s)
+            _z = model.encoder(torch.zeros_like(_v), _s)
+            if not args.no_ridge:
+                _r, _z = model.ridge(_r, _s), model.ridge(_z, _s)
+            _r, _z = _r.mean(1).float(), _z.mean(1).float()
             if stage1_head is not None:
                 _r, _z = stage1_head(_r), stage1_head(_z)
             _cz_sum += F.cosine_similarity(_r, _z, dim=-1).mean().item() * _v.size(0)
             _cz_n += _v.size(0)
     model.train()
     _cz = _cz_sum / _cz_n
+    _path = "encoder→head" if args.no_ridge else "encoder→ridge→head"
     print(f"[stage2] STARTUP encoder cos(real,zero)={_cz:.3f} "
-          f"(encoder→ridge→head, fp32；<0.3 好；~0.8 = 随机/未带 stage1 编码器)")
+          f"({_path}, fp32；<0.3 好；~0.8 = 随机/未带 stage1 编码器)")
     if _cz > 0.5:
         print("WARNING: 编码器对体素值不敏感，stage2 训练无脑信号可学。确认 "
               "--resume_encoder 指向 stage1_encoder.pt，且未被 --resume 覆盖。")
@@ -418,7 +434,7 @@ def main():
 
             out, sem, enc_sem = model(voxels, subj, input_ids=input_ids,
                                       attention_mask=attention_mask, labels=labels,
-                                      return_brain_sem=True)
+                                      return_brain_sem=True, use_ridge=not args.no_ridge)
             ce = out.loss / args.grad_accum
             # 辅助对齐：brain 语义汇总 vs caption CLIP 嵌入（batch 内 InfoNCE）
             bs = sem.size(0)
@@ -462,7 +478,8 @@ def main():
 
             global_step += 1
             if global_step % args.val_freq == 0:
-                val_ce = run_validation(model, val_loader, device, args.val_batches)
+                val_ce = run_validation(model, val_loader, device, args.val_batches,
+                                        use_ridge=not args.no_ridge)
                 if val_ce < best_val - 1e-4:
                     best_val = val_ce
                     patience_hits = 0
@@ -500,10 +517,12 @@ def main():
                         dl = db["labels"].to(device)
                         dn = db["nsd_idx"]
                         r_out, b_sem, _ = model(dv, ds, input_ids=di, attention_mask=da,
-                                                labels=dl, return_brain_sem=True)
+                                                labels=dl, return_brain_sem=True,
+                                                use_ridge=not args.no_ridge)
                         z_out, z_sem, _ = model(torch.zeros_like(dv), ds, input_ids=di,
                                                 attention_mask=da, labels=dl,
-                                                return_brain_sem=True)
+                                                return_brain_sem=True,
+                                                use_ridge=not args.no_ridge)
                         n_img += b_sem.size(0)
                         ce_r += r_out.loss.item() * b_sem.size(0)
                         ce_z += z_out.loss.item() * b_sem.size(0)
