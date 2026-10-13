@@ -1,0 +1,80 @@
+# Standalone brain<->image contrastive stage. Kept out of config/default.yaml on
+# purpose: that file is the frozen baseline recipe, and this stage shares none of
+# its pieces (no tokenizer, no instruction data, no language model).
+seed: 42
+resume: true
+# A separate directory from the Subject-1 run: `resume: true` reads ckpt_dir's
+# last.ckpt, so sharing the path would restore the 1-subject model and its
+# optimizer state into a 7-subject run.
+output_dir: outputs/stage1_s1-7
+
+defaults:
+  - encoder: neuro_informed_attn
+
+contrastive:
+  target_cache: data/clip_features/coco_clip_vitl14.pt
+  mode: image
+  image_feature_path: null
+  text_feature_path: null
+  image_weight: 1.0
+  text_weight: 1.0
+  loss_reduction: sum
+  require_disjoint_stimuli: false
+  target_bank_on_cpu: true
+  # Replace with the output of:
+  #   find ~ /mnt -maxdepth 8 -name "mindllm-base.ckpt" 2>/dev/null | head -1
+  encoder_init: /mnt/data/yjs2026/HLQ/MindLLM/MindLLM-main/ckpts/MindLLM/mindllm-base.ckpt
+  # No projection_dim: the projector's output width is the target bank's width
+  # (768 for CLIP ViT-L/14), because the loss and the retrieval compare the two
+  # sides with a bare dot product.
+  hidden_dim: 1024
+  temperature_init: 0.07
+  learnable_temperature: true
+  lr_encoder: 1.0e-5
+  lr_projector: 1.0e-4
+  weight_decay: 0.01
+  warmup_ratio: 0.05
+  encoder_out: ${output_dir}/encoder.pt
+  ckpt_dir: ${output_dir}/checkpoints
+
+  data:
+    _target_: src.dataset_contrastive.BrainContrastiveDataModule
+    # Subject 8 stays out: the base checkpoint was pretrained on 1-7 with 8 held
+    # out, so it is the only subject the encoder has never seen, and comparing
+    # against it is the only held-out comparison this encoder admits.
+    subjects: [1, 2, 3, 4, 5, 6, 7]
+    h5_dir: data/nsd0
+    val_coco: 900
+    split_seed: ${seed}
+    # The encoder's attention materializes [1, B, 1024, 15724] and the softmax
+    # runs in fp32, so one batch costs roughly B * 64 MB. At 3 repeats per
+    # stimulus, 12 stimuli -> B=36 -> ~2.25 GB for that tensor alone. This is the
+    # memory ceiling of the whole stage, and it also caps how many negatives the
+    # InfoNCE can see; raise it only if the run reports headroom.
+    stimuli_per_batch: 12
+    val_batch_size: 32
+    num_workers: 0  # h5py handles cannot cross a fork
+    drop_last: true
+
+  trainer:
+    _target_: lightning.pytorch.Trainer
+    max_epochs: 200
+    precision: bf16-mixed
+    gradient_clip_val: 1.0
+    accumulate_grad_batches: 1
+    check_val_every_n_epoch: 1
+    num_sanity_val_steps: 0
+    logger:
+      _target_: lightning.pytorch.loggers.WandbLogger
+      name: stage1-s1-7
+      project: mindllm-stage1
+      save_dir: ${output_dir}
+    callbacks:
+      - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+        monitor: val/brain2image_r@1
+        mode: max
+        filename: "{epoch:02d}"
+        dirpath: ${contrastive.ckpt_dir}
+        save_last: true
+      - _target_: lightning.pytorch.callbacks.LearningRateMonitor
+        logging_interval: step

@@ -1,0 +1,58 @@
+# Standalone Cross-Repeat Semantic JEPA. M0-M5 configs and training are unchanged.
+seed: 42
+resume: true
+output_dir: outputs/jepa_cross_repeat_s1-7
+ckpt_dir: ${output_dir}/checkpoints
+
+defaults:
+  - encoder: neuro_informed_attn
+
+jepa:
+  image_feature_path: data/clip_features/coco_clip_vitl14_s1-7.pt
+  encoder_init: /mnt/data/yjs2026/HLQ/MindLLM/MindLLM-main/ckpts/MindLLM/mindllm-base.ckpt
+  encoder_out: ${output_dir}/encoder.pt
+  model_id: openai/clip-vit-large-patch14
+  hidden_dim: 1024
+  predictor_hidden_dim: 1024
+  jepa_weight: 1.0
+  semantic_weight: 1.0
+  ema_decay: 0.996
+  lr_encoder: 1.0e-5
+  lr_head: 1.0e-4
+  weight_decay: 0.01
+  warmup_ratio: 0.05
+  require_disjoint_stimuli: true
+
+data:
+  _target_: src.dataset_jepa.CrossRepeatDataModule
+  subjects: [1, 2, 3, 4, 5, 6, 7]
+  h5_dir: data/nsd0
+  split_seed: ${seed}
+  val_fraction: 0.1
+  stimuli_per_batch: 12
+  val_batch_size: 16
+  num_workers: 0
+  drop_last: true
+
+trainer:
+  _target_: lightning.pytorch.Trainer
+  max_epochs: 200
+  precision: bf16-mixed
+  gradient_clip_val: 1.0
+  accumulate_grad_batches: 1
+  check_val_every_n_epoch: 1
+  num_sanity_val_steps: 0
+  logger:
+    _target_: lightning.pytorch.loggers.WandbLogger
+    name: jepa-cross-repeat-s1-7
+    project: mindllm-jepa
+    save_dir: ${output_dir}
+  callbacks:
+    - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+      monitor: val/brain2image_r@1
+      mode: max
+      filename: "{epoch:02d}"
+      dirpath: ${ckpt_dir}
+      save_last: true
+    - _target_: lightning.pytorch.callbacks.LearningRateMonitor
+      logging_interval: step

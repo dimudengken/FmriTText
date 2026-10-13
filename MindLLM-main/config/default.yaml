@@ -1,0 +1,91 @@
+stage: fit
+test_after_fit: true
+
+seed: 42
+model_id: lmsys/vicuna-7b-v1.5
+lm_checkpointing: 'off'
+checkpoint: null
+resume_id: null
+group: null
+run_name: null
+
+lora: false
+lr: 0.001
+early_stop: false
+output_dir: outputs/
+ckpt_dir: ${output_dir}/${data.task}/checkpoints
+resume: true
+
+defaults:
+  - encoder: neuro_informed_attn
+
+# Auxiliary global semantic alignment on the fMRI brain tokens (off by default).
+# With enabled=false the training path is byte-identical to the reproduced
+# baseline; the head is only built if feature_path is set, which gives the
+# "head present but switched off" regression run for free.
+# Requires data.group_by_coco=true (each sample then carries an integer coco_id)
+# and the target bank from scripts/precompute_clip_features.py.
+global_infonce:
+  enabled: false
+  feature_path: null
+  pooling: mean
+  hidden_dim: null
+  temperature: 0.07
+  lambda_loss: 0.05
+
+# M4/M5 caption-stage auxiliary alignment. Disabled for M0/M1/M2/M3.
+# Text mode uses one mean_then_l2 CLIP text target per COCO stimulus.
+contrastive:
+  enabled: false
+  mode: image
+  target_path: null
+  model_id: openai/clip-vit-large-patch14
+  embed_dim: 768
+  pooling: mean
+  hidden_dim: 1024
+  temperature: 0.07
+  symmetric: true
+  multi_positive: true
+  loss_weight: 0.05
+  warmup_steps: 1000
+
+trainer:
+  _target_: lightning.pytorch.Trainer
+  max_epochs: 2000
+  check_val_every_n_epoch: 1
+  accumulate_grad_batches: 8
+  gradient_clip_val: 0.5
+  use_distributed_sampler: false
+  logger:
+    _target_: lightning.pytorch.loggers.WandbLogger
+    name: ${run_name}
+    project: mindllm
+    save_dir: ${output_dir}
+    id: ${resume_id}
+    group: null
+  callbacks:
+    - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+      monitor: val/token_loss
+      filename: "{epoch:02d}"
+      dirpath: ${ckpt_dir}
+      save_last: true
+    - _target_: lightning.pytorch.callbacks.LearningRateMonitor
+      logging_interval: step
+    - _target_: src.utils.callbacks.WatchModel
+    - _target_: src.utils.callbacks.RNGState
+
+data:
+  _target_: src.dataset.fMRIInstructionDataModule
+  task: null
+  exclude: null
+  whole_brain: false
+  num_workers: 4
+  batch_size: 8
+  mixup: false
+  subjects:
+    - 1
+  train_samples: -1
+  nsd_version: 0
+  group_by_coco: true
+  split_val: false
+  split_seed: ${seed}
