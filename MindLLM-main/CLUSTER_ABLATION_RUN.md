@@ -36,10 +36,12 @@ bootstrap 只衡量给定 checkpoint 的图像采样不确定性，不覆盖训�
 ## 执行与产物
 
 ```bash
+export JAVA_HOME=/mnt/data2/yjs2026/jdk/jdk-11.0.32.1+1
+export PATH="$JAVA_HOME/bin:$PATH"
 env WANDB_MODE=disabled OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
   HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTHONFAULTHANDLER=1 \
   taskset -c 16-31 .venv-repaired/bin/python -u scripts/run_cluster_ablation.py \
-  --output outputs/cluster_ablation_s1_seed42_20261013
+  --output outputs/cluster_ablation_s1_seed42_20261013_r2
 ```
 
 实验目录保存 `protocol.json`、`status.json`、两个簇 bank、每个阶段的日志。
@@ -49,3 +51,10 @@ env WANDB_MODE=disabled OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS
 任一阶段失败则记录失败并停止后续阶段，不将失败的 run 当作有效结果。
 
 本协议只允许创建本次实验的文件与输出；原模型代码、其他实验、原始数据和既有 checkpoint 均保留。
+
+## 启动记录
+
+2026-10-13：第一批完成簇构建后，模型初始化因后台 PATH 缺少 Java 而失败，
+尚未进行正式训练或 checkpoint 选择。失败日志保留在原实验目录。
+补齐已有 Temurin 11 后，原编码器的 8-batch CUDA 探测通过，峰值显存约 18.4 GiB。
+正式批次使用 `_r2` 目录与相同实验设置，记录 Java 环境并继续三组对照。
