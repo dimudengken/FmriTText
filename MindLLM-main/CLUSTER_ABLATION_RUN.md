@@ -58,3 +58,23 @@ env WANDB_MODE=disabled OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS
 尚未进行正式训练或 checkpoint 选择。失败日志保留在原实验目录。
 补齐已有 Temurin 11 后，原编码器的 8-batch CUDA 探测通过，峰值显存约 18.4 GiB。
 正式批次使用 `_r2` 目录与相同实验设置，记录 Java 环境并继续三组对照。
+
+## 监控与有限恢复
+
+2026-10-13 晚：按用户要求增加无人值守监控。服务器 guardian 每 60 秒观察进程和进度；
+本机隐藏 PowerShell 监控每 120 秒检查 SSH、错误、指标与阶段变化，并写入服务器 `progress.log`。
+本机告警采用 Windows 桌面通知，平稳状态不反复通知。
+服务器守护独立运行；本机监控重新连上服务器时会检查守护是否需要重建。
+
+可恢复的进程故障最多重试两次／阶段。训练优先从该组 `last.ckpt` 恢复，
+保留 optimizer、早停状态和 RNG callback；尚无 checkpoint 时从相同 base 重新开始。
+重试用独立 CSV 目录，原始日志与部分结果保留。持续 30 分钟没有实验进度的所属 worker
+可由守护停止并恢复；模型、损失、划分、batch size、学习率和原始 24 小时预算保持固定。
+配置错误、重试上限或预算耗尽会停止并记录，不会自动更改研究设置。
+恢复前检查 GPU 是否空闲，避免与其他训练进程冲突。
+
+服务器保存 `guardian.json`、`recovery_policy.json`、`guard_events.jsonl`；
+本机保存 `outputs/cluster_ablation_monitor/monitor.json`、`snapshot.json`、`events.jsonl`。
+最终原批次输出仍为 `summary.json`、`metrics.csv` 和逐图分数，守护另写可读的 `RESULTS.md`。
+守护模拟测试覆盖阶段接续、恢复次数上限、配置错误停机和最终报告生成；
+没有为测试故意中断实际训练。不能将监控与有限恢复等同于修复服务器硬件故障。
