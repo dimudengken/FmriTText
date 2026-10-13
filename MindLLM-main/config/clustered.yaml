@@ -1,0 +1,13 @@
+# Opt-in experiment: inherit the baseline recipe and replace only the encoder.
+defaults:
+  - default
+  - override encoder: clustered_neuro_informed_attn
+  - _self_
+
+output_dir: outputs/clustered_attention_s1
+run_name: clustered-attention-s1
+resume: false
+
+data:
+  task: coco-caption
+  split_val: true

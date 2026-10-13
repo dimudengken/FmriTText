@@ -1,0 +1,9 @@
+_target_: src.modules.clustered_neuro_informed_attn.ClusteredNeuroscienceInformedAttention
+cluster_path: data/voxel_clusters/functional_s1.pt
+n_clusters: 128
+n_fmri_tokens: 128
+rank: 128
+pe_method: gauss
+token_dim: 1024
+hidden_dim: 1024
+n_mlp_layers: 4

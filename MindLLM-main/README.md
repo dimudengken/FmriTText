@@ -42,3 +42,11 @@ python main.py data.task=coco-qa data.split_val=true early_stop=true checkpoint=
 # A-OKVQA
 python main.py data.batch_size=4 data.task=a-okvqa early_stop=true data.split_val=true checkpoint=mindllm-base.ckpt lr=5e-4
 ```
+
+### Optional functional voxel clustering
+
+An opt-in encoder restricts each group of attention queries to a training-derived
+functional voxel cluster while preserving the original encoder parameters,
+residual MLP, token head, and LLM interface. The baseline configuration remains
+the default. See [VOXEL_CLUSTERING.md](VOXEL_CLUSTERING.md) for cluster-bank
+construction, split auditing, checkpoint initialization, and random-cluster controls.
