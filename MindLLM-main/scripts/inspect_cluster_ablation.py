@@ -17,7 +17,7 @@ def process_alive(pid, experiment):
         state = (directory / "stat").read_text().rsplit(")", 1)[1].split()[0]
         command = (directory / "cmdline").read_bytes().decode(errors="replace")
         return state != "Z" and str(experiment) in command and any(name in command for name in
-            ("run_cluster_ablation.py", "guard_cluster_ablation.py"))
+            ("run_cluster_ablation.py", "run_cluster_ablation_continue.py", "guard_cluster_ablation.py"))
     except (OSError, ValueError, TypeError):
         return False
 

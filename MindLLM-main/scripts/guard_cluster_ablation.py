@@ -30,7 +30,7 @@ def alive(pid, root):
         state = (proc / "stat").read_text().rsplit(")", 1)[1].split()[0]
         command = (proc / "cmdline").read_bytes().decode(errors="replace")
         return state != "Z" and str(root) in command and any(
-            name in command for name in ("run_cluster_ablation.py", "guard_cluster_ablation.py"))
+            name in command for name in ("run_cluster_ablation.py", "run_cluster_ablation_continue.py", "guard_cluster_ablation.py"))
     except (OSError, ValueError, TypeError):
         return False
 
@@ -133,6 +133,17 @@ def write_results(root):
     lines += ["", "These intervals are conditional on this training seed and selected checkpoints.",
               "Training, validation, prediction files, failure logs and recovery records are retained.",
               "Inspect summary.json, metrics.csv, protocol.json, launch.json and guard_events.jsonl.", ""]
+    protocol_path = root / "protocol.json"
+    protocol = json.loads(protocol_path.read_text()) if protocol_path.exists() else {}
+    if protocol.get("parent_output"):
+        previous = json.loads((Path(protocol["parent_output"]) / "summary.json").read_text())
+        lines += ["", "## Continuation versus 20 epochs", "",
+                  "Post-hoc extension of the same training runs; not an independent replication.", "",
+                  "| Arm | Previous CIDEr x100 | Continued CIDEr x100 | Change |", "|---|---:|---:|---:|"]
+        for arm in ("baseline", "functional", "random"):
+            before = previous["metrics"][arm]["real"]["CIDEr_x100"]
+            after = summary["metrics"][arm]["real"]["CIDEr_x100"]
+            lines.append(f"| {arm} | {before:.3f} | {after:.3f} | {after - before:+.3f} |")
     (root / "RESULTS.md").write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -143,7 +154,7 @@ def recover_train(root, arm, attempt):
     cfg = OmegaConf.load(root / arm / "config.yaml")
     OmegaConf.set_struct(cfg, False)
     cfg.resume = True
-    cfg.trainer.logger.version = f"recovery_{attempt}"
+    cfg.trainer.logger.version = "continuation" if attempt == 0 else f"recovery_{attempt}"
     run = root / arm
     checkpoint = run / "coco-caption/checkpoints/last.ckpt"
     resumed = str(checkpoint) if checkpoint.exists() else None

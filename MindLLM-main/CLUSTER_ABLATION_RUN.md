@@ -78,3 +78,16 @@ env WANDB_MODE=disabled OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS
 最终原批次输出仍为 `summary.json`、`metrics.csv` 和逐图分数，守护另写可读的 `RESULTS.md`。
 守护模拟测试覆盖阶段接续、恢复次数上限、配置错误停机和最终报告生成；
 没有为测试故意中断实际训练。不能将监控与有限恢复等同于修复服务器硬件故障。
+
+## 60 轮续训
+
+2026-10-14：20 轮批次完成后，按用户授权将三组续训上限统一提高至总计 60 轮，
+保持验证早停 patience=5、学习率、数据划分、簇 bank 和其他研究设置。
+新目录为 `outputs/cluster_ablation_s1_seed42_20261014_e60`，原 `_r2` 目录保留。
+用 `scripts/run_cluster_ablation_continue.py --mode prepare` 复制各组最后检查点及此前最佳检查点，
+只迁移 ModelCheckpoint 回调中的目录与路径，不改变参数、优化器、随机数、早停状态、epoch 或 step。
+三组从各自第 20 轮末尾继续，已有最佳验证模型仍参与最终选择。
+新批次顺序为 baseline、功能聚类、随机聚类、三组测试评估、统一比较；继续使用服务器守护。
+`protocol.json` 保存来源检查点 SHA256，最终 `RESULTS.md` 同时列出续训与 20 轮指标差异。
+续训批次独立设置 24 小时运行预算；可能先因验证早停停止，不要求必须训练满 60 轮。
+这次延长是在查看 20 轮结果后决定的后续探索，不是独立重复实验。
