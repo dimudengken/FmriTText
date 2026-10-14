@@ -1,0 +1,12 @@
+_target_: src.modules.adaptive_neuro_informed_attn.AdaptiveNeuroscienceInformedAttention
+n_fmri_tokens: 128
+rank: 128
+pe_method: gauss
+token_dim: 1024
+hidden_dim: 1024
+n_mlp_layers: 4
+mode: adaptive
+adapter_rank: 16
+gate_init: 0.1
+query_chunk_size: 128
+checkpoint_second_pass: true

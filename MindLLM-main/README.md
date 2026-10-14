@@ -50,3 +50,13 @@ functional voxel cluster while preserving the original encoder parameters,
 residual MLP, token head, and LLM interface. The baseline configuration remains
 the default. See [VOXEL_CLUSTERING.md](VOXEL_CLUSTERING.md) for cluster-bank
 construction, split auditing, checkpoint initialization, and random-cluster controls.
+
+### Optional adaptive two-pass voxel readout
+
+A separate encoder updates its attention queries from the first fMRI readout and
+reads the same voxels a second time. It preserves the original token head, prefix
+interface, downstream loss, and checkpoint keys. Baseline, residual-MLP control,
+and adaptive configurations share one downstream recipe. Existing modules and
+experiments remain available. See [ADAPTIVE_READOUT.md](ADAPTIVE_READOUT.md) for
+the mechanism, initialization, controlled runs, checkpoint checks, and versioned
+server deployment. No downstream performance improvement is claimed yet.

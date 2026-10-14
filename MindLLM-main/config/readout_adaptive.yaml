@@ -1,0 +1,6 @@
+defaults:
+  - readout_baseline
+  - override encoder: adaptive_neuro_informed_attn
+  - _self_
+
+readout_arm: adaptive

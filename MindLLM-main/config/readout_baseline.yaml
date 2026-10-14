@@ -1,0 +1,50 @@
+# Matched downstream recipe. Override only the encoder in the two other arms.
+defaults:
+  - default
+  - _self_
+
+readout_arm: baseline
+output_dir: outputs/readout_${readout_arm}_s1_seed${seed}
+run_name: readout-${readout_arm}-s1-seed${seed}
+resume: false
+checkpoint: ckpts/MindLLM/mindllm-base.ckpt
+lr: 1e-4
+early_stop: false
+lora: false
+test_after_fit: true
+
+data:
+  # Reuse the audited validation-from-training split (no cluster bank needed).
+  _target_: src.dataset_cluster_ablation.ClusterAblationDataModule
+  split_audit_path: ${output_dir}/split.json
+  task: coco-caption
+  split_val: true
+  batch_size: 4
+  num_workers: 0
+
+trainer:
+  max_epochs: 20
+  accelerator: gpu
+  devices: 1
+  precision: bf16-mixed
+  log_every_n_steps: 10
+  logger:
+    _target_: lightning.pytorch.loggers.CSVLogger
+    # Wandb-only keys inherited from default must be removed during preflight.
+    save_dir: ${output_dir}
+    name: csv
+  callbacks:
+    - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+      monitor: val/token_loss
+      mode: min
+      filename: "{epoch:02d}"
+      dirpath: ${ckpt_dir}
+      save_last: true
+      save_top_k: 1
+    - _target_: lightning.pytorch.callbacks.LearningRateMonitor
+      logging_interval: step
+    - _target_: src.utils.callbacks.RNGState
+    - _target_: lightning.pytorch.callbacks.EarlyStopping
+      monitor: val/token_loss
+      mode: min
+      patience: 5
