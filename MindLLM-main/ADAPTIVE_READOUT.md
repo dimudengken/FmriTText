@@ -149,3 +149,21 @@ release 从 Git 提交导出，共用原项目 `data`、`ckpts`、`.venv-repaire
 release 的上层保存源文件 SHA256 清单、提交号与检查记录，可按提交追溯。
 在 release 项目目录运行已有的 `run_mindllm_server.sh python train_readout.py ...`，
 它沿用服务器已验证的 CPU 16–31 与环境设置。部署并不自动启动训练。
+
+## 排队执行与每小时监控（2026-10-14）
+
+用户授权在聚类 60 轮批次完成后运行本实验。新增 `scripts/run_readout_campaign.py`：
+等待旧批次 `status.json` 为 complete，并保存旧报告，再检查 GPU 空闲后启动。
+三组重新从同一官方 base 初始化；最多 60 轮，patience=5，batch=4、梯度累积=8，
+lr=1e-4、seed=42，LLM 冻结，不加入聚类或其他辅助损失。
+先做每组 8-batch CUDA 探测，再顺序训练 baseline/adaptive/MLP control，
+按验证 loss 选最佳模型，统一评估 real/zero/shuffle 和逐图配对 bootstrap。
+正式批次运行预算 48 小时（从旧批次完成后计时），可恢复故障有最后检查点时最多重试两次／阶段。
+缺少可恢复检查点、配置错误或重试上限会保存 needs_attention，不盲目更改研究设置。
+源码、base checkpoint 哈希和三组 split 哈希留档，GPU 忙时等待，不终止其他任务。
+
+排队进程每小时保存 `hourly_snapshot.json` 与 `hourly_progress.jsonl`，等待期间记录旧实验进度；
+训练时每 30 秒检查所属 worker，持续 30 分钟无进度可停止该 worker 并有限恢复。
+Windows `scripts/monitor_readout_queue.ps1` 每小时读取并桌面通知，可在 SSH 重连后恢复丢失的队列进程。
+桌面通知需要本机在线；服务器进程独立运行，聊天关闭不影响。没有配置自动向聊天发送消息。
+最终报告为新批次 `RESULTS.md`、`summary.json`、`metrics.csv` 和逐图预测/分数。
