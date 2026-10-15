@@ -4,6 +4,12 @@ Authorized experiment: S2/S5/S7 are source subjects, S1 is an unseen target.
 COCO captioning, seed 42, baseline / functional / size-matched random controls.
 This is a single-target exploratory experiment, not a general cross-subject claim.
 
+2026-10-15 update: user cancelled the random arm while baseline was training. Retain the
+already completed random bank/smoke artifacts, but skip its full training and target tests.
+The active comparison and final report now contain baseline and functional only. Baseline
+training continues in its existing worker without interruption; its configuration is unchanged.
+The original protocol/runner and an explicit queue amendment are retained in the run directory.
+
 ## Data and zero-shot boundary
 
 Only source training images and fMRI responses fit CLIP-to-voxel ridge coefficients.

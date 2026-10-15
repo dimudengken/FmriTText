@@ -15,7 +15,7 @@ import time
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT))
 from scripts.run_cluster_ablation import save_json, file_hash
-ARMS = ('baseline', 'functional', 'random')
+ARMS = ('baseline', 'functional')
 PHASES = ['prepare'] + [f'smoke_{a}' for a in ARMS] + [f'train_{a}' for a in ARMS] + [f'evaluate_{a}' for a in ARMS] + ['compare']
 
 
@@ -195,6 +195,52 @@ def evaluate(args):
     original.evaluate(args)
 
 
+def compare(args):
+    import numpy as np
+    root = args.output
+    evaluations = [json.loads((root / arm / 'evaluation.json').read_text()) for arm in ARMS]
+    if any(e['keys'] != evaluations[0]['keys'] or e['references'] != evaluations[0]['references'] for e in evaluations[1:]):
+        raise ValueError('target evaluation keys/references differ')
+    summary = {'exploratory_single_seed': True, 'arms': list(ARMS), 'metrics': {}, 'paired_comparisons': {}}
+    scores = {}
+    for arm in ARMS:
+        metrics = json.loads((root / arm / 'test_metrics.json').read_text())
+        per_image = dict(np.load(root / arm / 'per_image_cider.npz'))
+        scores[arm] = per_image['real']
+        metrics['brain_dependence_shuffle_CIDEr_x100'] = float((per_image['real'] - per_image['shuffle']).mean() * 100)
+        summary['metrics'][arm] = metrics
+    delta = scores['functional'] - scores['baseline']
+    rng = np.random.default_rng(args.seed)
+    bootstrap = [float(delta[rng.integers(0, len(delta), len(delta))].mean()) for _ in range(2000)]
+    summary['paired_comparisons']['functional_minus_baseline'] = {
+        'delta_CIDEr_x100': float(delta.mean() * 100), 'CI95_x100': (np.quantile(bootstrap, [.025, .975]) * 100).tolist()}
+    save_json(root / 'summary.json', summary)
+    with (root / 'metrics.csv').open('w', newline='') as stream:
+        writer = csv.writer(stream)
+        writer.writerow(['arm','real_CIDEr_x100','BLEU4','ROUGE_L','shuffle_drop_CIDEr_x100'])
+        for arm in ARMS:
+            metrics = summary['metrics'][arm]
+            real = metrics['real']
+            writer.writerow([arm,real['CIDEr_x100'],real['BLEU4'],real['ROUGE_L'],metrics['brain_dependence_shuffle_CIDEr_x100']])
+    write_report(root)
+
+
+def write_report(root):
+    summary = json.loads((root / 'summary.json').read_text())
+    lines = ['# Zero-shot ROI cluster transfer results', '',
+             'Source-only S2/S5/S7 training, target S1 inference; seed 42. Random arm skipped at user request.', '',
+             '| Arm | CIDEr x100 | BLEU4 | ROUGE-L | Shuffle drop x100 |', '|---|---:|---:|---:|---:|']
+    for arm in ARMS:
+        metrics = summary['metrics'][arm]
+        real = metrics['real']
+        lines.append(f"| {arm} | {real['CIDEr_x100']:.3f} | {real['BLEU4']:.4f} | {real['ROUGE_L']:.4f} | {metrics['brain_dependence_shuffle_CIDEr_x100']:.3f} |")
+    result = summary['paired_comparisons']['functional_minus_baseline']
+    lines += ['', f"Functional minus baseline: {result['delta_CIDEr_x100']:.3f}; CI95={result['CI95_x100']}", '',
+        'Image bootstrap is conditional on this seed/checkpoints. ROI-local native-space transfer is approximate, not MNI registration.',
+        'This experiment uses source ridge functional vectors plus GMM, not official UBE voxel embeddings.']
+    (root / 'RESULTS.md').write_text('\n'.join(lines) + '\n')
+
+
 def alive(pid, root):
     try:
         p=Path('/proc')/str(int(pid))
@@ -248,7 +294,7 @@ def campaign_locked(args):
         names += [str(p.relative_to(PROJECT)) for p in (PROJECT/'config').rglob('*.yaml')]
         save_json(root/'protocol.json', {'sources':args.sources,'target':args.target,'seed':args.seed,
             'initialization':'encoder/projector random; same seed, frozen pretrained Vicuna; NO official brain checkpoint',
-            'task':'coco-caption','max_epochs':args.epochs,'max_steps':args.max_steps,'max_hours':args.max_hours,
+            'task':'coco-caption','arms':list(ARMS),'max_epochs':args.epochs,'max_steps':args.max_steps,'max_hours':args.max_hours,
             'selection':'source validation token loss only; patience 5', 'lr':1e-4,'batch_size':4,'accumulate':8,
             'target_fit_samples':0,'target_gradients':False,'gmm':'PCA64 + diagonal GMM128; source-only',
             'transfer':'shared ROI + hemisphere + ROI-normalized native RAS nearest neighbors; approximate, not MNI',
@@ -306,8 +352,7 @@ def campaign_locked(args):
             if not recoverable or count>=2:
                 status.update(state='needs_attention',error=f'{phase} exit {code}');save_json(path,status);return
             status['retries'][phase]=count+1;save_json(path,status)
-    from scripts.guard_cluster_ablation import write_results
-    write_results(root)
+    write_report(root)
     status.update(state='complete',finished_unix=time.time());save_json(path,status)
 
 
@@ -353,9 +398,7 @@ if __name__=='__main__':
         elif args.mode in ('smoke','train'): train(args)
         elif args.mode=='evaluate': evaluate(args)
         elif args.mode=='status': inspect(args)
-        else:
-            from scripts.run_cluster_ablation import compare
-            compare(args)
+        else: compare(args)
     except BaseException as error:
         if args.mode=='campaign' and (args.output/'status.json').exists():
             status=json.loads((args.output/'status.json').read_text());status.update(state='needs_attention',error=str(error));save_json(args.output/'status.json',status)

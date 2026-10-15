@@ -1,4 +1,5 @@
 import unittest
+import os
 import numpy as np
 from src.roi_cluster_transfer import transfer_labels, frozen_split
 
@@ -66,3 +67,26 @@ class TargetDataBoundaryTest(unittest.TestCase):
                 data=SourceOnlyDataModule(path,target_mode=True,subjects=[1],tokenizer=None)
             self.assertFalse(data.file['train']['subject_1'])
             self.assertEqual(len(data.file['test']['subject_1']),1)
+
+
+@unittest.skipUnless(os.name == 'posix', 'campaign uses POSIX locking')
+class TwoArmCampaignTest(unittest.TestCase):
+    def test_random_stages_are_not_scheduled_and_comparison_needs_only_two_arms(self):
+        import json, tempfile
+        from pathlib import Path
+        from argparse import Namespace
+        from scripts import run_zero_shot_roi_transfer as runner
+        self.assertNotIn('train_random', runner.PHASES)
+        self.assertNotIn('evaluate_random', runner.PHASES)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for arm, score in [('baseline', .4), ('functional', .6)]:
+                run = root / arm;run.mkdir()
+                runner.save_json(run/'evaluation.json', {'keys':['a','b'],'references':[['x'],['y']]})
+                runner.save_json(run/'test_metrics.json', {'real':{'CIDEr_x100':score*100,'BLEU4':.2,'ROUGE_L':.4}})
+                np.savez(run/'per_image_cider.npz', real=[score,score], shuffle=[0.,0.])
+            runner.compare(Namespace(output=root, seed=42))
+            summary = json.loads((root/'summary.json').read_text())
+            self.assertEqual(set(summary['metrics']), {'baseline','functional'})
+            self.assertAlmostEqual(summary['paired_comparisons']['functional_minus_baseline']['delta_CIDEr_x100'],20.)
+            self.assertTrue((root/'RESULTS.md').exists())
