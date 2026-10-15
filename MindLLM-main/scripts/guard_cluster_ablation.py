@@ -30,7 +30,7 @@ def alive(pid, root):
         state = (proc / "stat").read_text().rsplit(")", 1)[1].split()[0]
         command = (proc / "cmdline").read_bytes().decode(errors="replace")
         return state != "Z" and str(root) in command and any(
-            name in command for name in ("run_cluster_ablation.py", "run_cluster_ablation_continue.py", "guard_cluster_ablation.py"))
+            name in command for name in ("run_cluster_ablation.py", "run_cluster_ablation_continue.py", "run_cluster_until_early_stop.py", "guard_cluster_ablation.py"))
     except (OSError, ValueError, TypeError):
         return False
 
@@ -137,7 +137,8 @@ def write_results(root):
     protocol = json.loads(protocol_path.read_text()) if protocol_path.exists() else {}
     if protocol.get("parent_output"):
         previous = json.loads((Path(protocol["parent_output"]) / "summary.json").read_text())
-        lines += ["", "## Continuation versus 20 epochs", "",
+        parent_protocol = json.loads((Path(protocol["parent_output"]) / "protocol.json").read_text())
+        lines += ["", f"## Continuation versus {parent_protocol['max_epochs']}-epoch budget", "",
                   "Post-hoc extension of the same training runs; not an independent replication.", "",
                   "| Arm | Previous CIDEr x100 | Continued CIDEr x100 | Change |", "|---|---:|---:|---:|"]
         for arm in ("baseline", "functional", "random"):
@@ -165,12 +166,15 @@ def recover_train(root, arm, attempt):
     saved = torch.load(checkpoint, map_location="cpu")
     callbacks = [value for key, value in saved["callbacks"].items() if "ModelCheckpoint" in key]
     selected = callbacks[0]
+    early = next((v for k, v in saved["callbacks"].items() if "EarlyStopping" in k), {})
     if not Path(selected["best_model_path"]).is_file():
         raise RuntimeError("best checkpoint missing after recovery")
     save(run / "result.json", {"arm": arm, "mode": "train", "recovery_attempt": attempt,
         "resumed_checkpoint": resumed, "best_checkpoint": selected["best_model_path"],
         "best_val_loss": float(selected["best_model_score"]), "epochs": int(saved["epoch"]) + 1,
-        "global_step": int(saved["global_step"]), "max_memory_gib": torch.cuda.max_memory_allocated() / 1024**3})
+        "global_step": int(saved["global_step"]), "max_memory_gib": torch.cuda.max_memory_allocated() / 1024**3,
+        "stop_reason": "validation_early_stop" if early.get("stopped_epoch", 0) > 0 else "epoch_limit",
+        "early_stopping_state": {k: v for k, v in early.items() if k in ("wait_count", "stopped_epoch", "patience")}})
 
 
 def guard(root):
@@ -267,6 +271,11 @@ def guard_locked(root):
                 info["recoveries_total"] = sum(attempts.values())
                 info.pop("last_stalled_phase", None)
             mode, arm = (current.split("_", 1) + [None])[:2] if current != "compare" else ("compare", None)
+            if mode in ("evaluate", "compare") and protocol.get("require_early_stop"):
+                for cluster_arm in ("functional", "random"):
+                    result = json.loads((root / cluster_arm / "result.json").read_text())
+                    if result.get("stop_reason") != "validation_early_stop":
+                        raise RuntimeError("testing blocked: clustering did not reach validation early stopping")
             if mode == "evaluate":
                 splits = {json.loads((root / name / "split.json").read_text())["sha256"]
                           for name in ("baseline", "functional", "random")}

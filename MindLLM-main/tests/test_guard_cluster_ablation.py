@@ -12,6 +12,28 @@ if os.name == "posix":
 
 @unittest.skipUnless(os.name == "posix", "server-side POSIX guardian")
 class GuardianTest(unittest.TestCase):
+    def test_early_stop_protocol_blocks_testing_after_epoch_limit(self):
+        output = guardian.PROJECT / "outputs"
+        output.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=output, prefix="guard-test-") as directory:
+            root = Path(directory)
+            self.fixture(root)
+            protocol = json.loads((root / "protocol.json").read_text())
+            protocol["require_early_stop"] = True
+            guardian.save(root / "protocol.json", protocol)
+            status = json.loads((root / "status.json").read_text())
+            status.update(phase="evaluate_functional", completed=["train_baseline", "train_functional", "train_random", "evaluate_baseline"])
+            guardian.save(root / "status.json", status)
+            for arm in ("functional", "random"):
+                (root / arm).mkdir()
+                guardian.save(root / arm / "result.json", {"stop_reason": "epoch_limit"})
+            with patch.object(guardian, "alive", return_value=False), \
+                 patch.object(guardian, "gpu_is_available", return_value=True), \
+                 patch.object(guardian.subprocess, "Popen") as launch:
+                with self.assertRaisesRegex(RuntimeError, "did not reach validation early stopping"):
+                    guardian.guard(root)
+            launch.assert_not_called()
+
     def fixture(self, root, error="exit code -11"):
         now = time.time()
         protocol = {"max_hours": 24, "source_sha256": {}, "seed": 42,

@@ -4,6 +4,7 @@ param(
     [int]$IntervalSeconds = 120,
     [int]$StallMinutes = 20,
     [switch]$Once,
+    [switch]$HourlyReport,
     [switch]$NoNotify
 )
 
@@ -136,6 +137,14 @@ try {
                 Record-Event 'info' 'recovered' 'Experiment health checks recovered.'
             }
             $lastIssue = $issue
+            if ($HourlyReport -and $snapshot.state -eq 'running') {
+                $arm = $snapshot.phase -replace '^train_', ''
+                $reading = $snapshot.metrics.$arm
+                $message = 'Phase: ' + $snapshot.phase
+                if ($reading -and $reading.training) { $message += '. Epoch: ' + (1 + [int]$reading.training.epoch) }
+                if ($reading -and $reading.validation) { $message += '. Validation loss: ' + $reading.validation.loss }
+                Record-Event 'info' 'hourly progress' $message
+            }
             if ($issue) { $state = 'attention' }
             Save-Json $monitorPath @{ pid = $PID; state = $state; checked_utc = [DateTime]::UtcNow.ToString('o');
                 interval_seconds = $IntervalSeconds; run_dir = $RunDir; phase = $snapshot.phase;
