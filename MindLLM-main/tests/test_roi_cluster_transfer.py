@@ -52,20 +52,17 @@ class TargetDataBoundaryTest(unittest.TestCase):
         from pathlib import Path
         from unittest.mock import patch
         from src.dataset_zero_shot import SourceOnlyDataModule
-        from src.dataset import fMRIInstructionDataModule
 
         class TestOnlyHandle:
             def __getitem__(self,key):
                 if key!='test': raise AssertionError('target training group accessed')
                 return {'repeat':{'coco_id':np.array(99)}}
 
-        def fake_init(instance,**kwargs):
-            instance._files={'subject_1':TestOnlyHandle()}
         manifest={'sources':[2,5,7],'target':1,'sha256':'fixture',
                   'subjects':{'subject_1':{'train':[],'val':[],'test':[99]}}}
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'manifest.json';path.write_text(json.dumps(manifest))
-            with patch.object(fMRIInstructionDataModule,'__init__',fake_init):
+            with patch('h5py.File', return_value=TestOnlyHandle()):
                 data=SourceOnlyDataModule(path,target_mode=True,subjects=[1],tokenizer=None)
             self.assertFalse(data.file['train']['subject_1'])
             self.assertEqual(len(data.file['test']['subject_1']),1)
